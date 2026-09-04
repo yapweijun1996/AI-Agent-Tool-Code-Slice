@@ -1,6 +1,6 @@
 {
   "name": "agent-code-slice",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "description": "Precise, language-aware code context for AI coding agents.",
   "type": "module",
   "license": "MIT",
