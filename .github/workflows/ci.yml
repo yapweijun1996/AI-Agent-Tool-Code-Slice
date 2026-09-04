@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["20", "22"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # grammars/wasm/*.wasm are committed build artifacts (see grammars/build.ts) —
+      # a plain `npm ci` never rebuilds them and never needs the grammar-source
+      # devDependencies (those are intentionally not in package.json; see
+      # `grammars:setup`). This CI only verifies the committed artifacts and
+      # runs the actual test suite against them, on all three platforms.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Grammar integrity check
+        run: npm run grammars:verify
+
+      - name: Test
+        run: npm test
+
+      - name: CLI smoke test
+        shell: bash
+        run: |
+          node dist/cli/index.js --version
+          node dist/cli/index.js capabilities --json
+          node dist/cli/index.js outline test/fixtures/typescript/basic.ts --json
+          node dist/cli/index.js symbol test/fixtures/javascript/basic.js calculateTotal --json
+          node dist/cli/index.js symbol test/fixtures/cfml/Invoice.cfc calculateTotal --json
+
+      - name: Verify npm pack contents
+        shell: bash
+        run: npm pack --dry-run

@@ -44,6 +44,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test test/unit/*.test.ts",
     "test:watch": "node --import tsx --test --watch test/unit/*.test.ts",
+    "grammars:setup": "npm install --no-save --ignore-scripts @cfmleditor/tree-sitter-cfml@0.26.34 tree-sitter-cli@0.27.0 tree-sitter-javascript@0.25.0 tree-sitter-python@0.25.0 tree-sitter-typescript@0.23.2 && cd node_modules/tree-sitter-cli && node install.js",
     "grammars:build": "node --import tsx grammars/build.ts",
     "grammars:verify": "node --import tsx grammars/verify.ts",
     "benchmark:fixtures": "node --import tsx test/benchmark/generate-fixtures.ts",
@@ -54,13 +55,8 @@
     "web-tree-sitter": "0.27.0"
   },
   "devDependencies": {
-    "@cfmleditor/tree-sitter-cfml": "0.26.34",
     "@types/node": "^22.10.0",
     "ajv": "^8.20.0",
-    "tree-sitter-cli": "0.27.0",
-    "tree-sitter-javascript": "0.25.0",
-    "tree-sitter-python": "0.25.0",
-    "tree-sitter-typescript": "0.23.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }

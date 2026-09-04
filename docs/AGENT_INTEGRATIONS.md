@@ -1,5 +1,11 @@
 # AI Agent Integrations
 
+For a concrete, copy-pasteable command reference (what to run, how to read
+the JSON, when to fall back to a normal file read), see
+[README.md "For AI coding agents"](../README.md#for-ai-coding-agents). This
+document covers integration philosophy and per-agent-platform roadmap status
+instead.
+
 ## Integration philosophy
 
 Agent Code Slice is agent-agnostic.

@@ -45,6 +45,37 @@ AI coding agent
 
 The project is intentionally not a code search engine, repository indexer, RAG system, formatter, linter, or autonomous coding agent.
 
+## For AI coding agents
+
+If you are an AI coding agent and `code-slice` is installed (`npm install -D agent-code-slice`, or already a dependency of the project you're working in), prefer it over reading a whole file when you only need one symbol, one line's container, or one range.
+
+**Decision rule:** know the file and a symbol name → use `symbol`. Know the file and a line number (e.g. from a stack trace or lint error) → use `line`. Don't know what's in the file yet → use `outline` first, then `symbol` on what you find. Don't know if this file's language is supported → check `capabilities` or just try; it fails closed with a machine-readable error rather than guessing.
+
+```bash
+# What can this tool do, and what languages does it support?
+code-slice capabilities --json
+
+# What's in this file? (bounded list of symbols: kind, name, range, signature)
+code-slice outline src/app.ts --json
+
+# Give me exactly this function/method/class/query — nothing else.
+code-slice symbol src/app.ts calculateTotal --json
+
+# A stack trace or lint error points at a line — what's the enclosing unit?
+code-slice line src/app.ts 382 --json
+
+# I know roughly where, but not the exact boundaries — expand to a container.
+code-slice range src/app.ts 380:390 --expand --json
+```
+
+Every command above prints **exactly one JSON document to stdout** when `--json` is passed (schema: `schemas/code-slice-result-v1.schema.json`, described in `docs/JSON_SCHEMA.md`) — safe to pipe and parse directly, e.g. `code-slice symbol src/app.ts calculateTotal --json | jq -r .result.code`. Diagnostics go to stderr, never stdout.
+
+Read `result.code` for the exact text; do not re-derive it from `result.range` yourself. On failure, check `error.code` (stable values like `SYMBOL_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_UNSUPPORTED` — full list in `docs/JSON_SCHEMA.md`) rather than parsing `error.message`, and fall back to reading the file normally — this tool never guesses a symbol, language, or boundary, so an error here is real signal, not a bug to route around. `SYMBOL_AMBIGUOUS` includes bounded `candidates`; either narrow with `--kind` or pick one and say which.
+
+From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
+
+**Current honest limits, so you don't assume more than what's real:** MCP and agent-specific Skills/Extensions are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the only integration surfaces today. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); anything else returns `LANGUAGE_UNSUPPORTED`. This has been exercised on macOS/arm64 only — if you hit a real bug on another platform, that's genuinely useful signal, not user error.
+
 ## Product principles
 
 1. **Local-first** — source code is parsed on the user's machine.

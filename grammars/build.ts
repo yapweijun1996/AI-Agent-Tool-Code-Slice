@@ -3,8 +3,15 @@
  * Builds every pinned Tree-sitter grammar to a WASM module via `tree-sitter build --wasm`
  * and writes grammars/wasm/manifest.json with sha256 integrity metadata for each artifact.
  *
- * Source versions are pinned in package.json devDependencies (exact versions, no ranges).
- * See grammars/patches/cfml-common/PROVENANCE.md for why the CFML family needs a patch step.
+ * Grammar source packages (tree-sitter-cli and the four grammar packages) are
+ * NOT in package.json — they have nothing to do with running/testing/building
+ * the actual project, and @cfmleditor/tree-sitter-cfml's postinstall script
+ * fails on every platform unless run with --ignore-scripts (see
+ * grammars/patches/cfml-common/PROVENANCE.md), which would otherwise break a
+ * plain `npm install`/`npm ci` for every contributor and CI job. Pinned
+ * versions are hardcoded below (PINNED_VERSIONS) and must match
+ * `grammars:setup` in package.json exactly. Run `npm run grammars:setup` to
+ * install them, then `npm run grammars:build` to produce the WASM + manifest.
  *
  * grammars/wasm/*.wasm (and manifest.json) are COMMITTED build artifacts, not
  * CI-regenerated output: `npm run grammars:verify` re-hashes the files already
@@ -42,11 +49,19 @@ interface GrammarTarget {
   patchFiles?: string[];
 }
 
+// Keep in sync with the `grammars:setup` script in package.json.
+const PINNED_VERSIONS: Record<string, string> = {
+  "tree-sitter-cli": "0.27.0",
+  "tree-sitter-javascript": "0.25.0",
+  "tree-sitter-typescript": "0.23.2",
+  "tree-sitter-python": "0.25.0",
+  "@cfmleditor/tree-sitter-cfml": "0.26.34",
+};
+
 function readPinnedVersion(packageName: string): string {
-  const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
-  const version = pkg.devDependencies?.[packageName] ?? pkg.dependencies?.[packageName];
+  const version = PINNED_VERSIONS[packageName];
   if (!version) {
-    throw new Error(`No pinned version found for ${packageName} in package.json`);
+    throw new Error(`No pinned version recorded for ${packageName} in grammars/build.ts PINNED_VERSIONS`);
   }
   return version;
 }
@@ -121,10 +136,7 @@ function sha256File(filePath: string): string {
 
 function main(): void {
   if (!existsSync(treeSitterBin)) {
-    console.error(
-      `tree-sitter CLI binary not found at ${treeSitterBin}.\n` +
-        `Run "npm install --ignore-scripts" then "node node_modules/tree-sitter-cli/install.js" from inside node_modules/tree-sitter-cli.`,
-    );
+    console.error(`tree-sitter CLI binary not found at ${treeSitterBin}.\nRun "npm run grammars:setup" first.`);
     process.exit(1);
   }
 
@@ -140,7 +152,7 @@ function main(): void {
   for (const target of targets) {
     if (!existsSync(target.sourceDir)) {
       throw new Error(
-        `Grammar source directory missing for "${target.language}": ${target.sourceDir}. Run npm install first.`,
+        `Grammar source directory missing for "${target.language}": ${target.sourceDir}. Run "npm run grammars:setup" first.`,
       );
     }
 
