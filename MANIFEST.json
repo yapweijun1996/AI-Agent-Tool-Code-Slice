@@ -1,0 +1,173 @@
+{
+  "name": "Agent Code Slice Documentation Pack",
+  "status": "Design / pre-implementation",
+  "generated_for": "public GitHub repository bootstrap",
+  "file_count": 34,
+  "files": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "bytes": 524,
+      "sha256": "5cc6150123f81bbd8bc4d55beb5f0602ccd19b5f9a60158a672edf9c8ce36e95"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "bytes": 437,
+      "sha256": "73a9e4959e9a8089b4cc0d334d830128c0859b59374673721ef6a899df39414a"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "bytes": 620,
+      "sha256": "25e145129ab589e161c4df2326da662becfffdf2786abf4106ab598cf10f3d03"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 3259,
+      "sha256": "4d8a6f1046cfe8590878f038650f5e615bfc7a800c3bc9ce088d71dc8594095b"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 589,
+      "sha256": "2f500490bd97c10893e360974db606936ea116332649f65159fe7954305c4386"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 2116,
+      "sha256": "1778d5fcf7ab2b1094f6ee44eef81c96fa1c762a124c7b8536efc0f21c9d22aa"
+    },
+    {
+      "path": "DOCUMENTATION_INDEX.md",
+      "bytes": 1823,
+      "sha256": "0a1d4d2fe64223fd4141629c3ef46730dde11aa8e7603cacb32e3e06008d49ea"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6669,
+      "sha256": "3ca0839118340c2db0f45981348170761b28f9962924e8251950f7c7825457a4"
+    },
+    {
+      "path": "ROADMAP.md",
+      "bytes": 1902,
+      "sha256": "41da2b101b5e2f9be1afcefe55c33cf81093732ba576a238fff728c15e98e8bb"
+    },
+    {
+      "path": "SECURITY.md",
+      "bytes": 1410,
+      "sha256": "d276d519dc3f0103f11838a3daf5ed66a5a8012d7b628bfdc31c6178bfe6aa0a"
+    },
+    {
+      "path": "docs/AGENT_INTEGRATIONS.md",
+      "bytes": 2105,
+      "sha256": "e8817c044baba74aa275b426f8fb90b37571aa5ac97a90bc9388a8fdee7ebfb3"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 4770,
+      "sha256": "6474c03a911f817f05c3500fd870c51dd97f1db3e0efb24d34e526a55530f9e5"
+    },
+    {
+      "path": "docs/CLI_CONTRACT.md",
+      "bytes": 2506,
+      "sha256": "608c1a3f44b1dbc252d0dc61c0aea35f481e98540ccdb5a671eb31475a02d7fd"
+    },
+    {
+      "path": "docs/EXAMPLES.md",
+      "bytes": 1586,
+      "sha256": "99f101f8775c05dbdca44f47eadccb6fa7806a064f011351d643211c780298f0"
+    },
+    {
+      "path": "docs/IMPLEMENTATION_PLAN.md",
+      "bytes": 2476,
+      "sha256": "1b19177ceaf2fb004db860851cb2152b1b87c5925fadddf861c4945651974a30"
+    },
+    {
+      "path": "docs/JSON_SCHEMA.md",
+      "bytes": 2234,
+      "sha256": "5d245c1cae7cb1ed167c9b71c77ad6e097d37a975d2d6cab0b109a57be4b67b1"
+    },
+    {
+      "path": "docs/LANGUAGE_ADAPTER_CONTRACT.md",
+      "bytes": 2943,
+      "sha256": "91c60fe15360a742dd54cf15a3dc9c801247b9b724bb9d6a5f460dab11d2be0d"
+    },
+    {
+      "path": "docs/LANGUAGE_SUPPORT_MATRIX.md",
+      "bytes": 1737,
+      "sha256": "0e98ea11b3b1c53dc89ae219bf7f8f4b3a7c087e6c0886b20b654b1d608896c3"
+    },
+    {
+      "path": "docs/LICENSE_DECISION.md",
+      "bytes": 827,
+      "sha256": "0530f8dac5dd5cab393650972ce4276e31f0f18f9735c1b0764a0fd03d403cda"
+    },
+    {
+      "path": "docs/MCP_INTEGRATION.md",
+      "bytes": 1905,
+      "sha256": "99cf683f0cceeb69a267fc059864dbaddb94e14d79d97f3ccb4e776fed3e98d6"
+    },
+    {
+      "path": "docs/PARSER_ENGINE_DECISION.md",
+      "bytes": 2607,
+      "sha256": "d890365ea8630a2ca3d0f6a7150ce2166e9e91f850c6a90ba1412365245d4c77"
+    },
+    {
+      "path": "docs/PERFORMANCE_BENCHMARK.md",
+      "bytes": 1366,
+      "sha256": "a1facdf54dcea42eecaf5bfc09f8326017a000bf9f320d7f38b0cf370d35b51c"
+    },
+    {
+      "path": "docs/PRODUCT_SPEC.md",
+      "bytes": 3973,
+      "sha256": "00679f3c970e28ad0032d9e9c96a862caa13bfa52a58ab30497919398cecae43"
+    },
+    {
+      "path": "docs/RELEASE_CHECKLIST.md",
+      "bytes": 2013,
+      "sha256": "0b1f2281451694136528a4823da4dd00c27ccde583115cb55c17ff4b15cb266c"
+    },
+    {
+      "path": "docs/SECURITY_PRIVACY.md",
+      "bytes": 2623,
+      "sha256": "fbd7b846f49739fcc409d49107c691ffb3d22663a98eb8b88841e33cc7d60c3c"
+    },
+    {
+      "path": "docs/TESTING_GOLDEN_EVAL.md",
+      "bytes": 2645,
+      "sha256": "17bddce1ef13ffa3d0c3ad1a323917bfea29dcfd06ca2b66eaf8c5d2132aee08"
+    },
+    {
+      "path": "docs/adr/0001-web-tree-sitter-wasm-default.md",
+      "bytes": 719,
+      "sha256": "d0e14c18e58b100056976999edd20e44695eb25578a4d60f7a280c61ca10554a"
+    },
+    {
+      "path": "docs/adr/0002-cli-first-multi-agent-integration.md",
+      "bytes": 749,
+      "sha256": "083aae36d61a946979854b6e2920fbfefe963ad17d6781f054370f0d6b6467a4"
+    },
+    {
+      "path": "docs/adr/0003-read-only-fail-closed-v0.md",
+      "bytes": 608,
+      "sha256": "9e803709286e2ca3a3e5d89410eb48d1dcad40cae3fac32e0ecba0ae4bdd68da"
+    },
+    {
+      "path": "examples/cfml-query-slice.json",
+      "bytes": 467,
+      "sha256": "d32a0836dc8ba7d30c8f0f6d050707ed9f4ffeebb2b0e50f71ac594b7d766b38"
+    },
+    {
+      "path": "examples/error-symbol-ambiguous.json",
+      "bytes": 604,
+      "sha256": "5722c46d2b8a3a9ca316cd239358ebf96a9f456c4dcda978d67c95016a26a2b9"
+    },
+    {
+      "path": "examples/success-symbol.json",
+      "bytes": 643,
+      "sha256": "dfe9f706539cd927827293936d95a2af38b677241a75bf3476248b8ce95fc1be"
+    },
+    {
+      "path": "schemas/code-slice-result-v1.schema.json",
+      "bytes": 1846,
+      "sha256": "b5daff199e0306b241f3a2cf3e89c3292e6f6a1795b10faf971bd2c9eed7a484"
+    }
+  ]
+}

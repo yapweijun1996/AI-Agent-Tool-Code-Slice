@@ -1,0 +1,147 @@
+# V0.1 Implementation Plan
+
+## Phase 0 — Repository bootstrap
+
+Deliver:
+
+- package skeleton;
+- TypeScript/JavaScript build choice;
+- test runner;
+- lint/format policy;
+- schema folder;
+- fixture structure;
+- CI matrix;
+- license decision before first public reusable release.
+
+Gate:
+
+- clean install;
+- empty build/test;
+- package metadata validation.
+
+## Phase 1 — Parser engine spike
+
+Implement minimal `WasmEngine`.
+
+Languages:
+
+- JavaScript;
+- TypeScript;
+- Python;
+- CFML grammar load spike.
+
+Measure:
+
+- cold/warm startup;
+- 5/50/500 KB parse;
+- cross-platform install.
+
+Gate:
+
+- architecture decision remains valid or ADR amended.
+
+## Phase 2 — Normalized IR + adapter registry
+
+Implement:
+
+- source range type;
+- code symbol type;
+- diagnostics;
+- language adapter registry;
+- language detection;
+- no Core language switch statement.
+
+Gate:
+
+- adapters can register independently;
+- schema tests.
+
+## Phase 3 — First two languages
+
+Recommended first:
+
+- JavaScript;
+- TypeScript/TSX.
+
+Implement:
+
+- outline;
+- symbol;
+- line;
+- ambiguity.
+
+Gate:
+
+- frozen fixtures green.
+
+## Phase 4 — Python
+
+Repeat certification contract.
+
+Do not refactor Core for Python-specific behavior unless the abstraction is genuinely cross-language.
+
+## Phase 5 — CFML family
+
+Implement:
+
+- CFML host;
+- CFScript symbols;
+- CFQuery named query;
+- dynamic query name diagnostics;
+- mixed-language/injection evidence.
+
+This phase is allowed to expose adapter shortcomings, but fixes should generalize through explicit adapter hooks rather than CFML conditionals in Core.
+
+## Phase 6 — CLI
+
+Commands:
+
+- capabilities;
+- outline;
+- symbol;
+- line;
+- range.
+
+Implement strict stdout/stderr rules and exit codes.
+
+## Phase 7 — Stable JSON schema
+
+Freeze V1 envelope and run every CLI fixture through schema validation.
+
+## Phase 8 — Golden Eval + benchmark
+
+Publish:
+
+- fixture manifest;
+- results;
+- known limitations.
+
+No marketing benchmark before this phase.
+
+## Phase 9 — Cross-platform packaging
+
+Test npm artifact on Windows/macOS/Linux.
+
+Verify packaged WASM resolution from installed package, not source checkout only.
+
+## V0.1 release gate
+
+Must pass:
+
+- language certification;
+- schema;
+- install;
+- cross-platform smoke;
+- no-write tests;
+- root/path tests;
+- performance report;
+- docs consistency.
+
+## Deferred to V0.2
+
+- MCP;
+- Codex Skill;
+- Claude setup;
+- additional languages.
+
+CLI-first keeps V0.1 small and proves the core before integration complexity.

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-04T13:46:03.927Z",
+  "builtWith": {
+    "treeSitterCli": "tree-sitter 0.27.0",
+    "platform": "darwin-arm64",
+    "nodeVersion": "v23.10.0"
+  },
+  "grammars": [
+    {
+      "language": "javascript",
+      "wasmFile": "javascript.wasm",
+      "sha256": "7ccbce5ba189363aee524c4be7f3a0bdb25b961d4c6d2472a8f3aeb526eecbfe",
+      "sizeBytes": 413064,
+      "sourcePackage": "tree-sitter-javascript",
+      "sourceVersion": "0.25.0"
+    },
+    {
+      "language": "typescript",
+      "wasmFile": "typescript.wasm",
+      "sha256": "d24392183c75c103feafb827c9c086de00c30198e27f362cc971fbca6e91a87f",
+      "sizeBytes": 1415400,
+      "sourcePackage": "tree-sitter-typescript",
+      "sourceVersion": "0.23.2",
+      "sourceSubdir": "typescript"
+    },
+    {
+      "language": "tsx",
+      "wasmFile": "tsx.wasm",
+      "sha256": "3c6cb1c86cecc6d8c99b3a7dfc0aba8b838e2adf036bb23f384d6d8be395ae30",
+      "sizeBytes": 1447323,
+      "sourcePackage": "tree-sitter-typescript",
+      "sourceVersion": "0.23.2",
+      "sourceSubdir": "tsx"
+    },
+    {
+      "language": "python",
+      "wasmFile": "python.wasm",
+      "sha256": "3523e4dc3d12894bbb2f7ea4b86b50eec69aed321c3d9b49271d82ed9f5f79b0",
+      "sizeBytes": 456723,
+      "sourcePackage": "tree-sitter-python",
+      "sourceVersion": "0.25.0"
+    },
+    {
+      "language": "cfml",
+      "wasmFile": "cfml.wasm",
+      "sha256": "a0330df6b02367f41deafa72ddd21257cab423fd9c17087a52bd400aead40f93",
+      "sizeBytes": 3389480,
+      "sourcePackage": "@cfmleditor/tree-sitter-cfml",
+      "sourceVersion": "0.26.34",
+      "sourceSubdir": "cfml",
+      "patches": [
+        "grammars/patches/cfml-common/scanner.h",
+        "grammars/patches/cfml-common/tag.h"
+      ]
+    },
+    {
+      "language": "cfscript",
+      "wasmFile": "cfscript.wasm",
+      "sha256": "a0d31e8f982f10730ed4ab2a79eff0b1e0038e7fa94193b644270bcef35b43e1",
+      "sizeBytes": 3750115,
+      "sourcePackage": "@cfmleditor/tree-sitter-cfml",
+      "sourceVersion": "0.26.34",
+      "sourceSubdir": "cfscript",
+      "patches": [
+        "grammars/patches/cfml-common/scanner.h",
+        "grammars/patches/cfml-common/tag.h"
+      ]
+    },
+    {
+      "language": "cfquery",
+      "wasmFile": "cfquery.wasm",
+      "sha256": "fd2adfea54e0c016132c0f7ee4d289886901c4bacb48568b82efd179f90265df",
+      "sizeBytes": 2938093,
+      "sourcePackage": "@cfmleditor/tree-sitter-cfml",
+      "sourceVersion": "0.26.34",
+      "sourceSubdir": "cfquery",
+      "patches": [
+        "grammars/patches/cfml-common/scanner.h",
+        "grammars/patches/cfml-common/tag.h"
+      ]
+    }
+  ]
+}

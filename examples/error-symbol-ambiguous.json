@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "ok": false,
+  "operation": "slice",
+  "file": "src/UserService.java",
+  "language": "java",
+  "error": {
+    "code": "SYMBOL_AMBIGUOUS",
+    "message": "Symbol 'save' matched multiple supported symbols.",
+    "recoverable": true,
+    "candidates": [
+      {
+        "kind": "method",
+        "name": "save",
+        "range": {
+          "startLine": 42,
+          "endLine": 55
+        }
+      },
+      {
+        "kind": "method",
+        "name": "save",
+        "range": {
+          "startLine": 81,
+          "endLine": 96
+        }
+      }
+    ]
+  },
+  "warnings": []
+}

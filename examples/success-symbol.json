@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "ok": true,
+  "operation": "slice",
+  "file": "src/math.ts",
+  "language": "typescript",
+  "result": {
+    "kind": "function",
+    "nativeKind": "function_declaration",
+    "name": "calculateTotal",
+    "range": {
+      "startLine": 10,
+      "startColumn": 1,
+      "endLine": 14,
+      "endColumn": 2,
+      "startByte": 120,
+      "endByte": 230
+    },
+    "signature": "calculateTotal(qty: number, price: number)",
+    "code": "export function calculateTotal(qty: number, price: number) {\n  return qty * price;\n}"
+  },
+  "warnings": [],
+  "meta": {
+    "engine": "web-tree-sitter",
+    "parserMs": 12
+  }
+}

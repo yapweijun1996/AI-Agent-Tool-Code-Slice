@@ -1,0 +1,50 @@
+{
+  "name": "agent-code-slice",
+  "version": "0.1.0-dev",
+  "description": "Precise, language-aware code context for AI coding agents.",
+  "type": "module",
+  "license": "SEE LICENSE IN docs/LICENSE_DECISION.md",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "bin": {
+    "code-slice": "dist/cli/index.js"
+  },
+  "main": "dist/core/index.js",
+  "types": "dist/core/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "grammars/wasm"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/unit/*.test.ts",
+    "test:watch": "node --import tsx --test --watch test/unit/*.test.ts",
+    "grammars:build": "node --import tsx grammars/build.ts",
+    "grammars:verify": "node --import tsx grammars/verify.ts",
+    "benchmark:fixtures": "node --import tsx test/benchmark/generate-fixtures.ts",
+    "benchmark": "node --import tsx test/benchmark/run.ts",
+    "cli": "node --import tsx src/cli/index.ts"
+  },
+  "dependencies": {
+    "web-tree-sitter": "0.27.0"
+  },
+  "devDependencies": {
+    "@cfmleditor/tree-sitter-cfml": "0.26.34",
+    "@types/node": "^22.10.0",
+    "ajv": "^8.20.0",
+    "tree-sitter-cli": "0.27.0",
+    "tree-sitter-javascript": "0.25.0",
+    "tree-sitter-python": "0.25.0",
+    "tree-sitter-typescript": "0.23.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

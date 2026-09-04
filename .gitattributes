@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Built grammar artifacts are binary; never run text normalization on them
+*.wasm binary

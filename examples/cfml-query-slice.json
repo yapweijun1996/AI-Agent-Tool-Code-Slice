@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "ok": true,
+  "operation": "slice",
+  "file": "invoice.cfm",
+  "language": "cfml",
+  "result": {
+    "kind": "query",
+    "nativeKind": "cfquery",
+    "name": "qInvoice",
+    "embeddedLanguage": "cfquery",
+    "range": {
+      "startLine": 103,
+      "startColumn": 1,
+      "endLine": 148,
+      "endColumn": 11
+    },
+    "code": "<cfquery name=\"qInvoice\" datasource=\"#dsn#\">\\n    SELECT ...\\n</cfquery>"
+  },
+  "warnings": []
+}
