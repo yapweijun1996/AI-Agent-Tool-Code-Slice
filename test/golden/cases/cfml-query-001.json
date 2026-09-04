@@ -1,0 +1,14 @@
+{
+  "id": "cfml-query-001",
+  "file": "test/fixtures/cfml/Invoice.cfc",
+  "operation": "symbol",
+  "selector": { "name": "qInvoice" },
+  "expected": {
+    "kind": "query",
+    "name": "qInvoice",
+    "embeddedLanguage": "cfquery",
+    "startLine": 4,
+    "endLine": 6,
+    "codeIncludes": ["<cfquery name=\"qInvoice\"", "SELECT id, total FROM invoices"]
+  }
+}

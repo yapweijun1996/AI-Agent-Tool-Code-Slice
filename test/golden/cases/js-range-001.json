@@ -1,0 +1,12 @@
+{
+  "id": "js-range-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "range",
+  "selector": { "startLine": 3, "endLine": 4, "expand": false },
+  "expected": {
+    "kind": "block",
+    "startLine": 3,
+    "endLine": 4,
+    "code": "export function calculateTotal(qty, price) {\n  return qty * price;"
+  }
+}

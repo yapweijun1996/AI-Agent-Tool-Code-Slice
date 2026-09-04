@@ -1,0 +1,13 @@
+{
+  "id": "tsx-symbol-001",
+  "file": "test/fixtures/typescript/basic.tsx",
+  "operation": "symbol",
+  "selector": { "name": "Greeting" },
+  "expected": {
+    "kind": "function",
+    "name": "Greeting",
+    "startLine": 7,
+    "endLine": 9,
+    "codeIncludes": ["export function Greeting", "<div>Hello, {name}!</div>"]
+  }
+}

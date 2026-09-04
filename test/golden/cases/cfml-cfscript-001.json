@@ -1,0 +1,15 @@
+{
+  "id": "cfml-cfscript-001",
+  "file": "test/fixtures/cfml/Invoice.cfc",
+  "operation": "symbol",
+  "selector": { "name": "calculateTotal" },
+  "expected": {
+    "kind": "function",
+    "name": "calculateTotal",
+    "embeddedLanguage": "cfscript",
+    "signature": "calculateTotal(qty, price)",
+    "startLine": 9,
+    "endLine": 11,
+    "codeIncludes": ["function calculateTotal(qty, price)", "return qty * price;"]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ts-symbol-001",
+  "file": "test/fixtures/typescript/basic.ts",
+  "operation": "symbol",
+  "selector": { "name": "calculateTotal" },
+  "expected": {
+    "kind": "function",
+    "name": "calculateTotal",
+    "signature": "calculateTotal(qty: number, price: number)",
+    "startLine": 10,
+    "endLine": 12,
+    "codeIncludes": ["export function calculateTotal", ": Total"]
+  }
+}

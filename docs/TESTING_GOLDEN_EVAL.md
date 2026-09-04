@@ -75,17 +75,56 @@ Each case stores:
 
 The candidate implementation must not redefine expected results after seeing failures without versioning/reviewing the evaluator.
 
-**Implementation note (deviation):** the current test suite (`test/unit/*.test.ts`,
-`node:test`) covers every layer above — unit, grammar load, per-language
-certification (outline/symbol/line/range/nested/ambiguous/malformed/fake-syntax/
-Unicode), and CFML mixed-language (host/CFScript/CFQuery/malformed
-injection/dynamic query name) — but as TypeScript assertions against `src/core`,
-not as declarative `{id, file, operation, selector, expected}` JSON cases run
-through a separate evaluator. No such case-file format or runner exists yet.
-The one documented exception not yet covered: a JavaScript `<script>` region
-inside CFML (see `docs/LANGUAGE_SUPPORT_MATRIX.md` "Known limitations" — that
-embedding isn't wired up at all yet, so there's nothing to certify). Building
-the declarative runner this section describes remains open work.
+## Current declarative runner
+
+The repository now runs frozen case files from `test/golden/cases/*.json` through
+the public Core API. Run the evaluator directly with:
+
+```bash
+npm run test:golden
+```
+
+The same cases are also exercised by `npm test` through
+`test/unit/golden-eval.test.ts`. Case files are loaded in deterministic filename
+order and then evaluated in `id` order. A case failure reports its case ID and
+does not rewrite or regenerate the expected result. Every actual envelope is
+validated against `schemas/code-slice-result-v1.schema.json` before its case
+assertions run.
+
+The runner accepts the four delivery-level operations below. `symbol`, `line`,
+and `range` are mapped to the corresponding Core `slice()` selector; `outline`
+calls Core `outline()`.
+
+```json
+{
+  "id": "ts-symbol-001",
+  "file": "test/fixtures/typescript/basic.ts",
+  "operation": "symbol",
+  "selector": {
+    "name": "calculateTotal"
+  },
+  "expected": {
+    "kind": "function",
+    "name": "calculateTotal",
+    "startLine": 10,
+    "endLine": 12,
+    "codeIncludes": ["export function calculateTotal"]
+  }
+}
+```
+
+Success cases may assert `kind`, `name`, `embeddedLanguage`, `signature`, any
+range fields, exact `code`, `codeIncludes`, envelope `warningCodes`, or an
+outline's exact `symbols`/`symbolCount`. Failure cases set `"ok": false` and
+assert `errorCode`, with optional `recoverable`, `candidateCount`, and
+`warningCodes`. Files must be repository-relative and stay inside the
+repository; malformed case definitions fail closed before execution.
+
+The checked-in cases cover all current adapters, all four selector operations,
+exact range text, embedded CFML symbols, ambiguity, not-found behavior, and
+malformed-source warnings. JavaScript `<script>` embedding inside CFML remains
+outside the current cases because that adapter capability is still unimplemented
+(see `docs/LANGUAGE_SUPPORT_MATRIX.md`).
 
 ## Metrics
 

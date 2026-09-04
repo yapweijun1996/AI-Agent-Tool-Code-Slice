@@ -1,0 +1,16 @@
+{
+  "id": "js-symbol-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "symbol",
+  "selector": { "name": "calculateTotal" },
+  "expected": {
+    "kind": "function",
+    "name": "calculateTotal",
+    "signature": "calculateTotal(qty, price)",
+    "startLine": 3,
+    "endLine": 5,
+    "startByte": 37,
+    "endByte": 105,
+    "codeIncludes": ["export function calculateTotal", "return qty * price;"]
+  }
+}

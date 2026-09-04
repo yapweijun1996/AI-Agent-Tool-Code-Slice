@@ -8,7 +8,7 @@ Status values:
 - Experimental
 
 Rows below reflect the current implementation. "Verified" here means the
-36-test automated suite passes on a named CI matrix (see "Certification
+36-test certification suite passes on a named CI matrix (see "Certification
 evidence" below) — it certifies functional correctness (parsing, symbol
 resolution, ambiguity, malformed-source handling), not performance or a
 real npm-registry install on every platform (see `README.md`'s status
@@ -68,9 +68,10 @@ Certification evidence should include:
 - **Grammar identity/hash:** `grammars/wasm/manifest.json` sha256 per
   grammar, re-verified by `npm run grammars:verify` in every job.
 - **Fixture counts / exact-slice / ambiguity / malformed-source:** the
-  36-test `node:test` suite (`test/unit/*.test.ts`), covering all four
-  language families plus CFML's CFScript/CFQuery embedding — see
-  `CHANGELOG.md` for what each test asserts.
+  original 36-test certification suite, covering all four language families
+  plus CFML's CFScript/CFQuery embedding — see `CHANGELOG.md` for what each
+  test asserts. The declarative Golden Eval regression tests are additional
+  evidence and are described in `docs/TESTING_GOLDEN_EVAL.md`.
 - **Known limitations:** see below. This certification does not cover a
   real `npm install agent-code-slice` from the public registry on
   Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor

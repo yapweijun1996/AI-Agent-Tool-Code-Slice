@@ -6,6 +6,12 @@ Status: Design / pre-implementation.
 
 Goal: prove precise local slicing with one stable multi-language contract.
 
+Current evidence note: the declarative Golden Eval runner is implemented under
+`test/golden/` with 12 frozen JSON cases and passes locally via
+`npm run test:golden`. The CI workflow now runs that command on the existing
+Windows/macOS/Linux × Node 20/22 matrix; a new cross-platform run is still
+needed before treating this additional evidence as independently Verified.
+
 Planned:
 
 - `web-tree-sitter` WASM engine;

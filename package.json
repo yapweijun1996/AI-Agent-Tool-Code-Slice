@@ -43,6 +43,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node scripts/run-tests.mjs",
+    "test:golden": "node --import tsx test/golden/run.ts",
     "test:watch": "node scripts/run-tests.mjs --watch",
     "grammars:setup": "npm install --no-save --ignore-scripts @cfmleditor/tree-sitter-cfml@0.26.34 tree-sitter-cli@0.27.0 tree-sitter-javascript@0.25.0 tree-sitter-python@0.25.0 tree-sitter-typescript@0.23.2 && cd node_modules/tree-sitter-cli && node install.js",
     "grammars:build": "node --import tsx grammars/build.ts",

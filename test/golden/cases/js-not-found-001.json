@@ -1,0 +1,10 @@
+{
+  "id": "js-not-found-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "symbol",
+  "selector": { "name": "doesNotExist" },
+  "expected": {
+    "ok": false,
+    "errorCode": "SYMBOL_NOT_FOUND"
+  }
+}

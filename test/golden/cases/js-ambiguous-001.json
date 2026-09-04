@@ -1,0 +1,12 @@
+{
+  "id": "js-ambiguous-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "symbol",
+  "selector": { "name": "save" },
+  "expected": {
+    "ok": false,
+    "errorCode": "SYMBOL_AMBIGUOUS",
+    "recoverable": true,
+    "candidateCount": 2
+  }
+}

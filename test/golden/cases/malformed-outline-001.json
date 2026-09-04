@@ -1,0 +1,12 @@
+{
+  "id": "malformed-outline-001",
+  "file": "test/fixtures/javascript/malformed.js",
+  "operation": "outline",
+  "expected": {
+    "symbolCount": 1,
+    "symbols": [
+      { "kind": "function", "name": "wellFormed", "startLine": 1, "endLine": 3 }
+    ],
+    "warningCodes": ["PARSE_ERROR_RECOVERED"]
+  }
+}

@@ -45,6 +45,11 @@ The project follows semantic versioning once the first package is published.
   verified-working command reference (decision rule, five CLI examples,
   how to read the JSON output, current honest limits) rather than prose
   spread across contract docs.
+- Added a declarative Golden Eval runner under `test/golden/`, with 12 frozen
+  JSON cases covering all current adapters, selector operations, exact range
+  text, embedded CFML symbols, ambiguity, not-found behavior, and malformed
+  source warnings. `npm run test:golden` executes the cases through the public
+  Core API, and CI runs it separately from the unit suite.
 
 ### Fixed
 

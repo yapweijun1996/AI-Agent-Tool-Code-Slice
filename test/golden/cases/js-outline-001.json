@@ -1,0 +1,18 @@
+{
+  "id": "js-outline-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "outline",
+  "expected": {
+    "symbolCount": 8,
+    "symbols": [
+      { "kind": "import", "name": null, "startLine": 1, "endLine": 1 },
+      { "kind": "function", "name": "calculateTotal", "startLine": 3, "endLine": 5 },
+      { "kind": "function", "name": "formatPrice", "startLine": 7, "endLine": 9 },
+      { "kind": "class", "name": "Invoice", "startLine": 11, "endLine": 19 },
+      { "kind": "method", "name": "constructor", "startLine": 12, "endLine": 14 },
+      { "kind": "method", "name": "save", "startLine": 16, "endLine": 18 },
+      { "kind": "class", "name": "Receipt", "startLine": 21, "endLine": 25 },
+      { "kind": "method", "name": "save", "startLine": 22, "endLine": 24 }
+    ]
+  }
+}

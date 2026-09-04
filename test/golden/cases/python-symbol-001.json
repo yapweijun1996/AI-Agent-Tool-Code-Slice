@@ -1,0 +1,14 @@
+{
+  "id": "python-symbol-001",
+  "file": "test/fixtures/python/basic.py",
+  "operation": "symbol",
+  "selector": { "name": "build" },
+  "expected": {
+    "kind": "method",
+    "name": "build",
+    "signature": "build()",
+    "startLine": 15,
+    "endLine": 17,
+    "codeIncludes": ["@staticmethod", "def build()"]
+  }
+}

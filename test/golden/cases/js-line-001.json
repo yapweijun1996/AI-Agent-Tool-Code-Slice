@@ -1,0 +1,12 @@
+{
+  "id": "js-line-001",
+  "file": "test/fixtures/javascript/basic.js",
+  "operation": "line",
+  "selector": { "line": 4 },
+  "expected": {
+    "kind": "function",
+    "name": "calculateTotal",
+    "startLine": 3,
+    "endLine": 5
+  }
+}

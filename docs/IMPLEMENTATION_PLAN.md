@@ -116,6 +116,12 @@ Publish:
 - results;
 - known limitations.
 
+The declarative evaluator is implemented at `test/golden/` with frozen JSON
+cases in `test/golden/cases/`; `npm run test:golden` executes the cases through
+the public Core API and `npm test` includes a regression check for the runner.
+The benchmark remains separately documented in
+`docs/PERFORMANCE_BENCHMARK_RESULTS.md`.
+
 No marketing benchmark before this phase.
 
 ## Phase 9 — Cross-platform packaging
