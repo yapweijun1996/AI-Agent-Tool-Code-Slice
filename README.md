@@ -192,7 +192,7 @@ V0.1 is not complete until:
 
 ## Licensing
 
-No license is selected by this documentation pack. Before the repository is published for external reuse, choose and add an explicit `LICENSE` file. See [docs/LICENSE_DECISION.md](docs/LICENSE_DECISION.md).
+MIT. See [LICENSE](LICENSE) and [docs/LICENSE_DECISION.md](docs/LICENSE_DECISION.md) for how this was decided.
 
 ## Project owner
 

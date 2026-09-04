@@ -3,7 +3,24 @@
   "version": "0.1.0-dev",
   "description": "Precise, language-aware code context for AI coding agents.",
   "type": "module",
-  "license": "SEE LICENSE IN docs/LICENSE_DECISION.md",
+  "license": "MIT",
+  "author": "Yap Wei Jun",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/issues"
+  },
+  "homepage": "https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice#readme",
+  "keywords": [
+    "tree-sitter",
+    "ai-agent",
+    "code-context",
+    "cli",
+    "mcp",
+    "code-slicing"
+  ],
   "engines": {
     "node": ">=18.18.0"
   },

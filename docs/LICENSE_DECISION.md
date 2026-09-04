@@ -1,5 +1,17 @@
 # License Decision
 
+**Decided: MIT.** A top-level `LICENSE` file and `package.json` `license: "MIT"`
+are in place. All bundled Tree-sitter grammar dependencies
+(`tree-sitter-javascript`, `tree-sitter-typescript`, `tree-sitter-python`,
+`@cfmleditor/tree-sitter-cfml`) and `web-tree-sitter` itself are also MIT —
+confirmed via `npm view <pkg> license` — so redistributing the compiled WASM
+grammar artifacts under MIT does not conflict with any upstream license.
+
+The rest of this document is kept as the historical record of the decision
+that was made.
+
+---
+
 No license has been selected by this documentation pack.
 
 A public GitHub repository without a license does not automatically grant others permission to reuse, modify, or distribute the code.
