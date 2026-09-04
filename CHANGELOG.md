@@ -49,7 +49,9 @@ The project follows semantic versioning once the first package is published.
   JSON cases covering all current adapters, selector operations, exact range
   text, embedded CFML symbols, ambiguity, not-found behavior, and malformed
   source warnings. `npm run test:golden` executes the cases through the public
-  Core API, and CI runs it separately from the unit suite.
+  Core API, and CI runs it separately from the unit suite. CI run
+  [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
+  passed all 12 cases on Windows/macOS/Linux with Node 20 and Node 22.
 
 ### Fixed
 

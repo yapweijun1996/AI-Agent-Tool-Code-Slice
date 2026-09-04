@@ -77,6 +77,12 @@ Certification evidence should include:
   Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor
   performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`).
 
+Additional declarative Golden Eval evidence: CI run
+[33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
+passed all 12 frozen cases on the same Windows/macOS/Linux × Node 20/22
+matrix. This is additional regression evidence and does not change the
+language status labels above.
+
 An earlier run on the same commit lineage
 ([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
 failed on Windows for two real, now-fixed platform bugs: `npm test`'s shell

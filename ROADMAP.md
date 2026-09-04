@@ -8,9 +8,11 @@ Goal: prove precise local slicing with one stable multi-language contract.
 
 Current evidence note: the declarative Golden Eval runner is implemented under
 `test/golden/` with 12 frozen JSON cases and passes locally via
-`npm run test:golden`. The CI workflow now runs that command on the existing
-Windows/macOS/Linux × Node 20/22 matrix; a new cross-platform run is still
-needed before treating this additional evidence as independently Verified.
+`npm run test:golden`. CI run
+[33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
+passed that command on the existing Windows/macOS/Linux × Node 20/22 matrix;
+the additional evidence is now cross-platform recorded without changing any
+language status label.
 
 Planned:
 
