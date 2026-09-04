@@ -1,5 +1,9 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Force LF on checkout regardless of the platform/runner's core.autocrlf —
+# without eol=lf, `text=auto` alone still lets Windows checkouts convert to
+# CRLF, which breaks exact-text fixture assertions (found via real Windows
+# CI: test/unit/javascript.test.ts "range without --expand" failed only on
+# windows-latest, comparing `\n` fixtures against a CRLF-converted checkout).
+* text=auto eol=lf
 
 # Built grammar artifacts are binary; never run text normalization on them
 *.wasm binary
