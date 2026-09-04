@@ -7,21 +7,22 @@ Status values:
 - Verified
 - Experimental
 
-Rows below reflect the current implementation. "Implemented" means real
-adapter code with passing automated tests on this machine (macOS/arm64, Node
-v23.10.0) — see `CHANGELOG.md`. None are "Verified" yet: that requires the
-cross-platform/CI evidence described in the certification rule below, which
-has not been generated.
+Rows below reflect the current implementation. "Verified" here means the
+36-test automated suite passes on a named CI matrix (see "Certification
+evidence" below) — it certifies functional correctness (parsing, symbol
+resolution, ambiguity, malformed-source handling), not performance or a
+real npm-registry install on every platform (see `README.md`'s status
+banner for what's still macOS-only).
 
 | Language | Extensions | V0.1 target | Mixed-language role | Status |
 |---|---|---:|---|---|
-| JavaScript | `.js .jsx .mjs .cjs` | Yes | embedded in HTML/CFML later | Implemented |
-| TypeScript | `.ts` | Yes | host | Implemented |
-| TSX | `.tsx` | Yes | JSX embedded syntax | Implemented |
-| Python | `.py` | Yes | host | Implemented |
-| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Implemented (JS `<script>`/CSS embedding not yet handled — see Known limitations below) |
-| CFScript | embedded / script-oriented CFML | Yes | embedded | Implemented |
-| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Implemented (region is captured as an opaque named symbol; not deep-parsed with the built `cfquery` grammar yet) |
+| JavaScript | `.js .jsx .mjs .cjs` | Yes | embedded in HTML/CFML later | Verified |
+| TypeScript | `.ts` | Yes | host | Verified |
+| TSX | `.tsx` | Yes | JSX embedded syntax | Verified |
+| Python | `.py` | Yes | host | Verified |
+| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Verified (JS `<script>`/CSS embedding not yet handled — see Known limitations below) |
+| CFScript | embedded / script-oriented CFML | Yes | embedded | Verified |
+| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Verified (region is captured as an opaque named symbol; not deep-parsed with the built `cfquery` grammar yet) |
 | Java | `.java` | V0.2 candidate | host | Planned |
 | C# | `.cs` | V0.2 candidate | host | Planned |
 | Go | `.go` | V0.2 candidate | host | Planned |
@@ -50,7 +51,41 @@ Certification evidence should include:
 - malformed-source behavior;
 - known limitations.
 
-## Known limitations (current Implemented state)
+## Certification evidence (all 7 grammars, current Verified status)
+
+- **Run:** GitHub Actions `CI` workflow, commit `0da6685`, run
+  [33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301)
+  — `.github/workflows/ci.yml`.
+- **Operating systems:** Windows Server 2025 (build 10.0.26100, GitHub image
+  `windows-2025-vs2026`), macOS 26.5.2 (image `macos-26-arm64`), Ubuntu
+  24.04.4 (image `ubuntu-24.04`). These are GitHub-hosted rolling runner
+  images, not manually pinned OS builds — re-running the workflow later may
+  land on a newer image revision of the same OS version.
+- **Node versions:** 20 and 22 (resolved by `actions/setup-node@v4`), on all
+  three OSes above — 6 jobs total, all green. The declared `engines.node`
+  floor of `>=18.18.0` is not itself independently verified (18 is not in
+  the CI matrix).
+- **Grammar identity/hash:** `grammars/wasm/manifest.json` sha256 per
+  grammar, re-verified by `npm run grammars:verify` in every job.
+- **Fixture counts / exact-slice / ambiguity / malformed-source:** the
+  36-test `node:test` suite (`test/unit/*.test.ts`), covering all four
+  language families plus CFML's CFScript/CFQuery embedding — see
+  `CHANGELOG.md` for what each test asserts.
+- **Known limitations:** see below. This certification does not cover a
+  real `npm install agent-code-slice` from the public registry on
+  Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor
+  performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`).
+
+An earlier run on the same commit lineage
+([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
+failed on Windows for two real, now-fixed platform bugs: `npm test`'s shell
+glob (`test/unit/*.test.ts`) wasn't expanded by PowerShell on Node 20, and
+Git's checkout converted committed LF fixtures to CRLF, breaking one
+exact-text assertion on Node 22. Both are why `scripts/run-tests.mjs` and
+`.gitattributes`' `eol=lf` exist — recorded here so the fix doesn't look
+unmotivated later.
+
+## Known limitations (current Verified state)
 
 - CFML's `<script>` (client-side JS) and `<style>` (CSS) regions are not yet
   re-parsed as embedded languages, even though the CFML grammar exposes
@@ -62,11 +97,11 @@ Certification evidence should include:
 - Destructuring patterns (`const { a, b } = x`, tuple-unpacking assignment in
   Python) are not surfaced as named symbols — a CodeSymbol with
   `name: null, dynamicName: true` is still emitted rather than being dropped.
-- Only macOS/arm64 has been exercised; Windows/Linux install and run smoke
-  tests (README "V0.1 Definition of Done") have not been performed. Runtime
-  (not build) has additionally been verified on Node v20.20.2 in this
-  environment, alongside the primary v23.10.0; the declared `engines.node`
-  floor of `>=18.18.0` itself is not independently verified.
+- Functional correctness (the test suite) is CI-verified on Windows/macOS/
+  Linux — see "Certification evidence" above. What's *not* covered: a real
+  `npm install` from the public registry on Windows/Linux (only locally on
+  macOS, plus `npm pack --dry-run` in CI on all three), the Node 18.18 floor
+  specifically (CI tests 20/22), and performance (macOS-only benchmark).
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.

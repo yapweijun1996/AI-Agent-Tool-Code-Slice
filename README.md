@@ -2,8 +2,8 @@
 
 Precise, language-aware code context for AI coding agents.
 
-> Status: **V0.1 core Implemented, not yet Verified**.  
-> The Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters described below exist as real code with a passing automated test suite (see `CHANGELOG.md`). "Verified" per `DOCUMENTATION_INDEX.md`'s status convention additionally requires cross-platform evidence, which has not been generated — only macOS/arm64 has been exercised so far. MCP and agent-specific integration packs remain **Planned** (V0.2).
+> Status: **V0.1 core Verified** (functional correctness, cross-platform CI) — **not yet Verified** for packaging/performance beyond macOS.  
+> The Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters described below are real code with a 36-test automated suite passing on Windows Server 2025, macOS 26, and Ubuntu 24.04 (Node 20 and 22 each) — see the [CI workflow](.github/workflows/ci.yml) and `CHANGELOG.md` for the exact run. CI also confirms `npm pack` resolves correctly on all three; a real registry install (`npm install agent-code-slice` from an empty directory) has only been done manually on macOS so far. The performance benchmark (`docs/PERFORMANCE_BENCHMARK_RESULTS.md`) is macOS-only. MCP and agent-specific integration packs remain **Planned** (V0.2).
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.
 
