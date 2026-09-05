@@ -6,6 +6,8 @@ The project follows semantic versioning once the first package is published.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-05
+
 ### Added
 
 - Extended the CFML adapter to re-parse HTML-style `<script>` and `<style>`
@@ -113,6 +115,7 @@ The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
 covered by CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 on the full Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix. The declared
-Node floor is now covered by CI. Packaging from a real registry install on
-Windows/Linux and the performance benchmark remain outside that evidence; the
-currently published `0.1.0` package predates these latest CFML paths.
+Node floor is now covered by CI. The `0.2.0` package contains these latest
+CFML paths; packaging from a real registry install on Windows/Linux and the
+performance benchmark remain outside this evidence until the release gates
+complete.

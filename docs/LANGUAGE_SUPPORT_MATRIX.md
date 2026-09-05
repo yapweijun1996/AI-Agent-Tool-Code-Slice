@@ -77,7 +77,8 @@ Certification evidence should include:
   real `npm install agent-code-slice` from the public registry on
   Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor
   performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`). The
-  currently published `0.1.0` package predates the latest CFML embedded paths.
+  `0.2.0` release package contains the latest CFML embedded paths; its
+  cross-platform registry-install smoke is a separate opt-in release gate.
 
 Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
@@ -115,9 +116,8 @@ unmotivated later.
   Linux — see "Certification evidence" above. What's *not* covered: a real
   `npm install` from the public registry on Windows/Linux (only locally on
   macOS, plus `npm pack --dry-run` in CI on all three), and performance
-  (macOS-only benchmark). The currently published `0.1.0` package predates the
-  latest CFML embedded paths; the registry-install smoke job is opt-in for a
-  future published version.
+  (macOS-only benchmark). The `0.2.0` release package contains the latest CFML
+  embedded paths; the registry-install smoke job is an opt-in release gate.
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.
