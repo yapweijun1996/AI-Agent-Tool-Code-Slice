@@ -18,9 +18,13 @@ The project follows semantic versioning once the first package is published.
   integrity pipeline, bringing the committed WASM manifest to 8 grammars.
 - Added CFML mixed-language fixtures, SQL-level fixtures, unsupported-region
   coverage, recoverable embedded-error coverage, and four declarative Golden
-  Eval cases. The suite now has 44 unit tests and 16 Golden Eval cases; CI run
-  [33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
-  covers the new CFML paths on the Windows/macOS/Ubuntu × Node 20/22 matrix.
+  Eval cases. The suite now has 47 unit tests and 16 Golden Eval cases; CI run
+  [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
+  covers the new CFML paths on the Windows/macOS/Ubuntu × Node 18.18.0/20/22
+  matrix.
+- Added a Node 18.18-compatible TypeScript development-script launcher,
+  root/symlink containment, byte-limit, invalid-UTF-8, and read-only file-loader
+  regression tests, and an opt-in cross-platform registry-install smoke job.
 - Implemented the V0.1 Core API (`capabilities`/`outline`/`slice`), the
   `web-tree-sitter` `WasmEngine` parser backend, and a language adapter
   registry with zero language conditionals in Core.
@@ -50,8 +54,8 @@ The project follows semantic versioning once the first package is published.
   `LICENSE` (MIT) and `package.json` publish metadata
   (author/repository/bugs/homepage/keywords), resolving the decision
   `docs/LICENSE_DECISION.md` flagged as required before external publish.
-- Added `.github/workflows/ci.yml`: a Windows/macOS/Ubuntu × Node 20/22
-  matrix (6 jobs) running install, typecheck, build, grammar integrity,
+- Added `.github/workflows/ci.yml`: a Windows/macOS/Ubuntu × Node 18.18.0/20/22
+  matrix (9 jobs) running install, typecheck, build, grammar integrity,
   the full test suite, a CLI smoke test, and `npm pack --dry-run` on every
   push/PR to `main`.
 - Added a "For AI coding agents" section to `README.md`: a concrete,
@@ -101,14 +105,14 @@ passes on Windows Server 2025, macOS 26.5.2, and Ubuntu 24.04.4, each on
 Node 20 and 22 — see
 [CI run 33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301).
 Not covered by that evidence: a real registry install on Windows/Linux
-(macOS-only so far), the Node 18.18 floor specifically (CI tests 20/22),
-and performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
+(macOS-only so far), and performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
 integration packs, and V0.2+ languages remain unimplemented, per
 `ROADMAP.md`.
 
 The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
 covered by CI run
-[33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
-on the full Windows/macOS/Ubuntu × Node 20/22 matrix. Packaging from a real
-registry install on Windows/Linux and the performance benchmark remain
-outside that evidence.
+[33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
+on the full Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix. The declared
+Node floor is now covered by CI. Packaging from a real registry install on
+Windows/Linux and the performance benchmark remain outside that evidence; the
+currently published `0.1.0` package predates these latest CFML paths.

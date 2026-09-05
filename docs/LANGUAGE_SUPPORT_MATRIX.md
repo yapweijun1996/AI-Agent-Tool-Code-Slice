@@ -8,11 +8,11 @@ Status values:
 - Experimental
 
 Rows below reflect the current implementation. "Verified" here means the
-36-test certification suite passes on a named CI matrix (see "Certification
-evidence" below) — it certifies functional correctness (parsing, symbol
-resolution, ambiguity, malformed-source handling), not performance or a
-real npm-registry install on every platform (see `README.md`'s status
-banner for what's still macOS-only).
+language certification and regression suite passes on a named CI matrix (see
+"Certification evidence" below) — it certifies functional correctness
+(parsing, symbol resolution, ambiguity, malformed-source handling), not
+performance or a real npm-registry install on every platform (see `README.md`'s
+status banner for what's still outstanding).
 
 | Language | Extensions | V0.1 target | Mixed-language role | Status |
 |---|---|---:|---|---|
@@ -62,9 +62,10 @@ Certification evidence should include:
   images, not manually pinned OS builds — re-running the workflow later may
   land on a newer image revision of the same OS version.
 - **Node versions:** 20 and 22 (resolved by `actions/setup-node@v4`), on all
-  three OSes above — 6 jobs total, all green. The declared `engines.node`
-  floor of `>=18.18.0` is not itself independently verified (18 is not in
-  the CI matrix).
+  three OSes above — 6 jobs total, all green. Follow-up run
+  [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
+  adds Node 18.18.0, for 9 green jobs total, and independently verifies the
+  declared `engines.node` floor of `>=18.18.0`.
 - **Grammar identity/hash:** `grammars/wasm/manifest.json` sha256 per
   grammar, re-verified by `npm run grammars:verify` in every job.
 - **Fixture counts / exact-slice / ambiguity / malformed-source:** the
@@ -75,7 +76,8 @@ Certification evidence should include:
 - **Known limitations:** see below. This certification does not cover a
   real `npm install agent-code-slice` from the public registry on
   Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor
-  performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`).
+  performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`). The
+  currently published `0.1.0` package predates the latest CFML embedded paths.
 
 Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
@@ -83,9 +85,13 @@ passed the then-current 12 frozen cases on the same Windows/macOS/Linux × Node
 20/22 matrix. The latest CI run
 [33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
 passed the current 16 cases and 44-test suite on all six jobs, including the
-new CFML embedded JS/CSS/SQL cases. This is additional regression evidence;
-the existing Verified labels remain supported by the original certification
-and the expanded matrix run.
+new CFML embedded JS/CSS/SQL cases. Follow-up CI run
+[33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
+passed the current 16 cases and 47-test suite on all nine Windows/macOS/Ubuntu
+× Node 18.18.0/20/22 jobs. This follow-up also independently covers the
+declared Node floor; the opt-in registry-install job was skipped because no
+published package version was supplied. The existing Verified labels remain
+supported by the original certification and these expanded matrix runs.
 
 An earlier run on the same commit lineage
 ([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
@@ -108,8 +114,10 @@ unmotivated later.
 - Functional correctness (the test suite) is CI-verified on Windows/macOS/
   Linux — see "Certification evidence" above. What's *not* covered: a real
   `npm install` from the public registry on Windows/Linux (only locally on
-  macOS, plus `npm pack --dry-run` in CI on all three), the Node 18.18 floor
-  specifically (CI tests 20/22), and performance (macOS-only benchmark).
+  macOS, plus `npm pack --dry-run` in CI on all three), and performance
+  (macOS-only benchmark). The currently published `0.1.0` package predates the
+  latest CFML embedded paths; the registry-install smoke job is opt-in for a
+  future published version.
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.
