@@ -15,6 +15,10 @@ Node 18.18.0/20/22 matrix, including the CFML embedded JS/CSS/SQL paths. The
 declared Node floor is now covered by CI. The earlier
 run [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
 remains the historical evidence for the original 12-case Golden set.
+Release CI run
+[33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
+also verified public-registry installation of `0.2.0` on Windows, macOS, and
+Ubuntu with Node 20.
 
 Planned:
 

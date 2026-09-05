@@ -27,6 +27,10 @@ The project follows semantic versioning once the first package is published.
 - Added a Node 18.18-compatible TypeScript development-script launcher,
   root/symlink containment, byte-limit, invalid-UTF-8, and read-only file-loader
   regression tests, and an opt-in cross-platform registry-install smoke job.
+- Published `agent-code-slice@0.2.0` with the latest CFML paths; release CI run
+  [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
+  verified registry installation and CFML embedding on Windows, macOS, and
+  Ubuntu with Node 20.
 - Implemented the V0.1 Core API (`capabilities`/`outline`/`slice`), the
   `web-tree-sitter` `WasmEngine` parser backend, and a language adapter
   registry with zero language conditionals in Core.
@@ -106,8 +110,7 @@ grammars) is **Verified** for functional correctness per
 passes on Windows Server 2025, macOS 26.5.2, and Ubuntu 24.04.4, each on
 Node 20 and 22 — see
 [CI run 33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301).
-Not covered by that evidence: a real registry install on Windows/Linux
-(macOS-only so far), and performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
+Not covered by that evidence: performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
 integration packs, and V0.2+ languages remain unimplemented, per
 `ROADMAP.md`.
 
@@ -116,6 +119,7 @@ covered by CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 on the full Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix. The declared
 Node floor is now covered by CI. The `0.2.0` package contains these latest
-CFML paths; packaging from a real registry install on Windows/Linux and the
-performance benchmark remain outside this evidence until the release gates
-complete.
+CFML paths, and release CI run
+[33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
+verified its registry installation on Windows/macOS/Ubuntu with Node 20. The
+performance benchmark remains outside this evidence.

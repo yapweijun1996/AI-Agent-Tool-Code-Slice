@@ -11,8 +11,8 @@ Rows below reflect the current implementation. "Verified" here means the
 language certification and regression suite passes on a named CI matrix (see
 "Certification evidence" below) — it certifies functional correctness
 (parsing, symbol resolution, ambiguity, malformed-source handling), not
-performance or a real npm-registry install on every platform (see `README.md`'s
-status banner for what's still outstanding).
+performance beyond the current macOS benchmark (see `README.md`'s status
+banner for what's still outstanding).
 
 | Language | Extensions | V0.1 target | Mixed-language role | Status |
 |---|---|---:|---|---|
@@ -73,12 +73,11 @@ Certification evidence should include:
   plus CFML's CFScript/CFQuery embedding — see `CHANGELOG.md` for what each
   test asserts. The declarative Golden Eval regression tests are additional
   evidence and are described in `docs/TESTING_GOLDEN_EVAL.md`.
-- **Known limitations:** see below. This certification does not cover a
-  real `npm install agent-code-slice` from the public registry on
-  Windows/Linux (only `npm pack --dry-run`, which the CI does check), nor
-  performance (macOS-only, `docs/PERFORMANCE_BENCHMARK_RESULTS.md`). The
-  `0.2.0` release package contains the latest CFML embedded paths; its
-  cross-platform registry-install smoke is a separate opt-in release gate.
+- **Known limitations:** see below. This certification does not cover
+  performance beyond the macOS-only benchmark in
+  `docs/PERFORMANCE_BENCHMARK_RESULTS.md`. The separate `0.2.0` release CI
+  smoke covers public-registry installation on all three listed platforms and
+  verifies CFML embedding, not agent-specific integrations.
 
 Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
@@ -90,9 +89,12 @@ new CFML embedded JS/CSS/SQL cases. Follow-up CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 passed the current 16 cases and 47-test suite on all nine Windows/macOS/Ubuntu
 × Node 18.18.0/20/22 jobs. This follow-up also independently covers the
-declared Node floor; the opt-in registry-install job was skipped because no
-published package version was supplied. The existing Verified labels remain
-supported by the original certification and these expanded matrix runs.
+declared Node floor. Release CI run
+[33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
+passed those core checks again and completed the opt-in registry-install smoke
+on Windows/macOS/Ubuntu with Node 20, including the published CFML embedding.
+The existing Verified labels remain supported by the original certification
+and these expanded matrix runs.
 
 An earlier run on the same commit lineage
 ([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
@@ -113,11 +115,9 @@ unmotivated later.
   Python) are not surfaced as named symbols — a CodeSymbol with
   `name: null, dynamicName: true` is still emitted rather than being dropped.
 - Functional correctness (the test suite) is CI-verified on Windows/macOS/
-  Linux — see "Certification evidence" above. What's *not* covered: a real
-  `npm install` from the public registry on Windows/Linux (only locally on
-  macOS, plus `npm pack --dry-run` in CI on all three), and performance
-  (macOS-only benchmark). The `0.2.0` release package contains the latest CFML
-  embedded paths; the registry-install smoke job is an opt-in release gate.
+  Linux — see "Certification evidence" above. The `0.2.0` release CI also
+  verified real public-registry installation on all three listed platforms with
+  Node 20. Performance remains limited to the macOS-only benchmark.
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.

@@ -140,8 +140,10 @@ set now has 16 cases and the unit suite has 47 tests. The latest CI run
 passed the current 16 cases, 47-test suite, grammar integrity check, CLI smoke
 test, and `npm pack --dry-run` on all nine Windows/macOS/Ubuntu × Node 18.18.0/20/22
 jobs. This covers the new CFML embedded JS/CSS/SQL paths and the declared Node
-floor. The opt-in registry-install job was skipped because no published package
-version was supplied.
+floor. Release CI run
+[33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
+also passed the core checks and completed registry installation plus CFML
+embedding verification on Windows, macOS, and Ubuntu with Node 20.
 
 ## Metrics
 
