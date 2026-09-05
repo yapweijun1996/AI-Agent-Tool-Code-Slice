@@ -232,9 +232,11 @@ vendor-specific live runs remain opt-in and are tracked separately in
 `docs/AGENT_INTEGRATIONS.md`.
 
 The CI test matrix is configured to run this suite on Windows, macOS, and
-Ubuntu across the declared Node versions. Link a green CI run before upgrading
-the public compatibility status. Do not combine its result with parser
-accuracy or latency metrics.
+Ubuntu across the declared Node versions. CI run
+[33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
+passed the suite on all nine matrix jobs. This is package-level cross-platform
+evidence, not Codex, Claude, Gemini, or OpenCode behavioral certification. Do
+not combine its result with parser accuracy or latency metrics.
 
 ## Regression rule
 

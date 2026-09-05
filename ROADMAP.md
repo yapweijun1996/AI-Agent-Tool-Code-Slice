@@ -21,8 +21,12 @@ Release CI run
 also verified public-registry installation of `0.2.0` on Windows, macOS, and
 Ubuntu with Node 20.
 The built-package agent-facing contract E2E and the full five-cohort benchmark
-runner are now implemented; vendor-specific live agent certification and
-cross-platform benchmark evidence still require their own recorded runs.
+runner are implemented. CI run
+[33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
+passed all nine agent-facing test matrix jobs and all three Ubuntu/Windows/macOS
+Node 20 benchmark jobs, with one report artifact uploaded per benchmark job.
+Vendor-specific live agent certification remains a separate opt-in evidence
+requirement.
 
 Planned:
 

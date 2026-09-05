@@ -1,10 +1,11 @@
 # Performance Benchmark
 
 Status: the reproducible benchmark runner is implemented. The checked-in
-report is a local macOS evidence set; the CI workflow runs the same cohort on
-Ubuntu, Windows, and macOS with Node 20 and uploads one artifact per job. Do
-not treat the local report or a single CI artifact as a universal latency
-promise. Regenerate via:
+report is a local macOS evidence set; CI run
+[33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
+passed the same cohort on Ubuntu, Windows, and macOS with Node 20 and uploaded
+one artifact per job. Do not treat the local report or a single CI artifact as
+a universal latency promise. Regenerate via:
 
 ```bash
 npm run benchmark:fixtures && npm run build && npm run --silent benchmark
