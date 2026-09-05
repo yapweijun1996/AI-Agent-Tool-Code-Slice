@@ -19,7 +19,7 @@ The project follows semantic versioning once the first package is published.
 - Added CFML mixed-language fixtures, SQL-level fixtures, unsupported-region
   coverage, recoverable embedded-error coverage, and four declarative Golden
   Eval cases. The suite now has 44 unit tests and 16 Golden Eval cases; CI run
-  [33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+  [33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
   covers the new CFML paths on the Windows/macOS/Ubuntu × Node 20/22 matrix.
 - Implemented the V0.1 Core API (`capabilities`/`outline`/`slice`), the
   `web-tree-sitter` `WasmEngine` parser backend, and a language adapter
@@ -66,7 +66,7 @@ The project follows semantic versioning once the first package is published.
   [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
   passed the then-current 12 cases on Windows/macOS/Linux with Node 20 and
   Node 22. The expanded 16-case set and 44-test suite are covered by the
-  later CI run [33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852).
+  later CI run [33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632).
 
 ### Fixed
 
@@ -108,7 +108,7 @@ integration packs, and V0.2+ languages remain unimplemented, per
 
 The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
 covered by CI run
-[33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+[33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
 on the full Windows/macOS/Ubuntu × Node 20/22 matrix. Packaging from a real
 registry install on Windows/Linux and the performance benchmark remain
 outside that evidence.

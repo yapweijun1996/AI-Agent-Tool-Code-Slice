@@ -81,7 +81,7 @@ Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
 passed the then-current 12 frozen cases on the same Windows/macOS/Linux × Node
 20/22 matrix. The latest CI run
-[33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+[33933654632](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933654632)
 passed the current 16 cases and 44-test suite on all six jobs, including the
 new CFML embedded JS/CSS/SQL cases. This is additional regression evidence;
 the existing Verified labels remain supported by the original certification
