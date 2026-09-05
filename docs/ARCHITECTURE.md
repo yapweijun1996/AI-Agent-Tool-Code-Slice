@@ -15,7 +15,7 @@ Agent Code Slice separates:
                            |
               +------------+------------+
               |                         |
-             CLI                       MCP
+             CLI              Serverless adapter (future)
               |                         |
               +------------+------------+
                            |
@@ -142,9 +142,12 @@ Primary lowest-common compatibility layer.
 
 Direct integration for runtimes such as AGRUN.
 
-### MCP
+### Serverless adapter (future)
 
-Optional local stdio adapter. It must call Core.
+Optional stateless function wrapper. It must call Core, use the same JSON
+contract, and define explicit source-input, authentication, privacy, size,
+timeout, and logging behavior. It is not a resident server and does not use
+MCP/stdio.
 
 ### Agent-specific packs
 

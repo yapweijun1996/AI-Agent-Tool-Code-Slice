@@ -31,7 +31,7 @@ Use for every package release.
 - [ ] JSON schema tests passed.
 - [ ] JS public API tests passed.
 - [ ] Error-code compatibility reviewed.
-- [ ] MCP contract tested if included in this release.
+- [ ] Serverless contract tested if included in this release.
 
 ## Security/privacy
 

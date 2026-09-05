@@ -6,6 +6,13 @@ The project follows semantic versioning once the first package is published.
 
 ## [Unreleased]
 
+### Changed
+
+- Confirmed the product boundary: no MCP server or MCP/stdio adapter will be
+  built. A future serverless integration, if selected, will be a separate
+  stateless wrapper over Core with an explicit source-input and privacy
+  contract.
+
 ## [0.2.0] - 2026-09-05
 
 ### Added
@@ -110,9 +117,9 @@ grammars) is **Verified** for functional correctness per
 passes on Windows Server 2025, macOS 26.5.2, and Ubuntu 24.04.4, each on
 Node 20 and 22 — see
 [CI run 33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301).
-Not covered by that evidence: performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
-integration packs, and V0.2+ languages remain unimplemented, per
-`ROADMAP.md`.
+Not covered by that evidence: performance (macOS-only benchmark). The
+serverless adapter and agent-specific integration packs remain unimplemented,
+per `ROADMAP.md`; an MCP server is explicitly out of scope.
 
 The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
 covered by CI run

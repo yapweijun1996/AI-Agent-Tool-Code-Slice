@@ -1,6 +1,7 @@
 # ADR 0002: CLI-First Multi-Agent Integration
 
-Status: Accepted for V0.1 design.
+Status: Superseded by ADR 0003 for future integration direction; CLI/JS API
+decisions remain in force.
 
 ## Context
 
@@ -10,7 +11,8 @@ Codex CLI, Claude Code, Gemini CLI, OpenCode, and future agents expose different
 
 Use CLI + stable JSON as the lowest-common integration.
 
-Add JS API for direct hosts and MCP as an optional structured adapter.
+Add JS API for direct hosts. Do not make Core depend on an agent protocol;
+future serverless delivery must remain a separate thin adapter.
 
 Agent-specific Skills/Extensions/custom tools stay thin.
 
@@ -25,4 +27,5 @@ Agent-specific Skills/Extensions/custom tools stay thin.
 
 Use:
 
-> Works with AI coding agents that can use shell commands, JavaScript, or MCP.
+> Works with AI coding agents that can use shell commands or JavaScript. A
+> future serverless adapter is a separate planned integration.

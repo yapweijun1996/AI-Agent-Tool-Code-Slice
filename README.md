@@ -3,17 +3,16 @@
 Precise, language-aware code context for AI coding agents.
 
 > Status: **V0.1 core Verified** (functional correctness and cross-platform package/install CI) — **not yet Verified** for performance beyond macOS.
-> The Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters described below have a 47-test regression suite passing on Windows Server 2025, macOS 26, and Ubuntu 24.04 (Node 18.18.0, 20, and 22 each) — see the [CI workflow](.github/workflows/ci.yml) and `CHANGELOG.md` for the exact run. The repository includes a 16-case declarative Golden Eval regression set (`npm run test:golden`); release CI run [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994) passed all 47 unit tests and 16 Golden cases, including the CFML embedded JS/CSS/SQL paths, on the Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix, and installed `agent-code-slice@0.2.0` successfully from the public registry on all three platforms with Node 20. CI also confirms `npm pack` resolves correctly on all three. The performance benchmark (`docs/PERFORMANCE_BENCHMARK_RESULTS.md`) is macOS-only. MCP and agent-specific integration packs remain **Planned** (V0.2).
+> The Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters described below have a 47-test regression suite passing on Windows Server 2025, macOS 26, and Ubuntu 24.04 (Node 18.18.0, 20, and 22 each) — see the [CI workflow](.github/workflows/ci.yml) and `CHANGELOG.md` for the exact run. The repository includes a 16-case declarative Golden Eval regression set (`npm run test:golden`); release CI run [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994) passed all 47 unit tests and 16 Golden cases, including the CFML embedded JS/CSS/SQL paths, on the Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix, and installed `agent-code-slice@0.2.0` successfully from the public registry on all three platforms with Node 20. CI also confirms `npm pack` resolves correctly on all three. The performance benchmark (`docs/PERFORMANCE_BENCHMARK_RESULTS.md`) is macOS-only. No MCP server is planned; the future serverless adapter and agent-specific integration packs remain **Planned** (V0.2).
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.
 
-The product is designed to work with any AI coding agent that can use one or more of:
+The current product is designed to work with any AI coding agent that can use one or more of:
 
 - shell / terminal commands;
-- a JavaScript / Node.js API;
-- Model Context Protocol (MCP).
+- a JavaScript / Node.js API.
 
-Target integrations include Codex CLI, Claude Code, Gemini CLI, OpenCode, AGRUN, VM-MCP, and other coding agents. Integration support must be verified by real end-to-end tests before being marked as supported.
+Target integrations include Codex CLI, Claude Code, Gemini CLI, OpenCode, AGRUN, VM-MCP, and other coding agents. A future serverless adapter is a separate planned integration; support must be verified by real end-to-end tests before being marked as supported.
 
 ## Why
 
@@ -74,7 +73,7 @@ Read `result.code` for the exact text; do not re-derive it from `result.range` y
 
 From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
 
-**Current honest limits, so you don't assume more than what's real:** MCP and agent-specific Skills/Extensions are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the only integration surfaces today. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, MCP, agent-specific integration packs, and broader performance guarantees remain outside the current evidence.
+**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
 
 ## Product principles
 
@@ -84,7 +83,7 @@ From Node.js/TypeScript, the same three operations are a JS API (`import { capab
 4. **Deterministic** — no LLM is required to decide code boundaries.
 5. **Fail closed** — ambiguous symbols produce explicit candidates instead of guessed results.
 6. **Multi-language** — one stable contract across languages.
-7. **Multi-agent** — CLI is the lowest common compatibility layer; MCP and agent-specific packs are optional adapters.
+7. **On-demand integration** — CLI is the lowest common compatibility layer; JS API and any future serverless wrapper are thin adapters over Core, with no resident MCP server.
 8. **Small public contract** — stable CLI, JSON schema, and JS API; implementation details remain replaceable.
 
 ## Planned V0.1 languages
@@ -139,31 +138,35 @@ const result = await slice({
 });
 ```
 
-## Planned MCP
+## Planned serverless adapter
 
-The MCP adapter is intentionally small and read-only:
+The future serverless adapter is intentionally stateless and read-only:
 
-- `code_slice_capabilities`
-- `code_slice_outline`
-- `code_slice_get`
+- one request invokes `capabilities`, `outline`, or `slice`;
+- the response uses the same versioned JSON envelope and stable error codes;
+- the wrapper delegates to Core and does not duplicate parsing logic.
 
-The MCP server is planned as a local stdio server. It must call the same Core API as the CLI and must not duplicate parsing logic.
+It will not expose MCP/stdio or require a long-running process. A cloud
+function cannot access a caller's local path by default, so the source-input,
+authentication, privacy, size, timeout, and logging contract must be selected
+before implementation. See [Serverless integration](docs/SERVERLESS_INTEGRATION.md).
 
 ## Agent compatibility model
 
-| Agent | Lowest-common integration | Enhanced integration |
+| Agent | Current integration | Future optional integration |
 |---|---|---|
-| Codex CLI | CLI | MCP + Skill |
-| Claude Code | CLI | MCP |
-| Gemini CLI | CLI | MCP + Extension |
-| OpenCode | CLI | MCP + Custom Tool |
-| AGRUN | JS API | MCP optional |
-| VM-MCP | CLI | MCP optional |
-| Other agents | CLI if shell exists | MCP / JS API if supported |
+| Codex CLI | CLI | Skill or serverless wrapper |
+| Claude Code | CLI | Serverless wrapper |
+| Gemini CLI | CLI | Serverless wrapper or Extension |
+| OpenCode | CLI | Serverless wrapper or Custom Tool |
+| AGRUN | JS API | Serverless wrapper |
+| VM-MCP | CLI | None provided by Code Slice |
+| Other agents | CLI if shell exists | JS API or serverless wrapper if supported |
 
 The public compatibility statement should be:
 
-> Works with AI coding agents that can use shell commands, JavaScript, or MCP.
+> Works with AI coding agents that can use shell commands or JavaScript. A
+> future serverless adapter is a separate planned integration.
 
 Do not claim "supports all AI agents."
 
@@ -199,7 +202,7 @@ Start with:
 - [CLI contract](docs/CLI_CONTRACT.md)
 - [JSON contract](docs/JSON_SCHEMA.md)
 - [Language adapter contract](docs/LANGUAGE_ADAPTER_CONTRACT.md)
-- [MCP integration](docs/MCP_INTEGRATION.md)
+- [Serverless integration](docs/SERVERLESS_INTEGRATION.md)
 - [Agent integrations](docs/AGENT_INTEGRATIONS.md)
 - [Security and privacy](docs/SECURITY_PRIVACY.md)
 - [Testing and Golden Eval](docs/TESTING_GOLDEN_EVAL.md)

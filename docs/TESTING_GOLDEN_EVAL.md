@@ -175,7 +175,8 @@ Malformed fixtures must surface expected warning/error state.
 
 ### Schema validity
 
-Every CLI/MCP JSON result validates against the published schema.
+Every CLI result and future serverless JSON result validates against the
+published schema.
 
 ## Benchmark cohorts
 

@@ -146,7 +146,8 @@ Must pass:
 
 ## Deferred to V0.2
 
-- MCP;
+- provider-neutral stateless serverless adapter;
+- serverless source-input, authentication, privacy, size, timeout, and logging contract;
 - Codex Skill;
 - Claude setup;
 - additional languages.

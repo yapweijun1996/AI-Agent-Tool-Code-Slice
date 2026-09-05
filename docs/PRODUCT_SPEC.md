@@ -27,7 +27,7 @@ Provide a deterministic local utility that returns the smallest correct syntacti
 
 - AI coding agents;
 - developers using AI coding agents;
-- agent runtimes and MCP hosts;
+- agent runtimes and serverless function consumers;
 - local developer tooling.
 
 ## Target consumers
@@ -38,7 +38,7 @@ Provide a deterministic local utility that returns the smallest correct syntacti
 - OpenCode;
 - AGRUN;
 - VM-MCP;
-- any agent/runtime able to invoke shell commands, JavaScript, or MCP.
+- any agent/runtime able to invoke shell commands or JavaScript.
 
 ## Product statement
 
@@ -48,7 +48,8 @@ Do not say:
 
 Use:
 
-> Works with AI coding agents that can use shell commands, JavaScript, or MCP.
+> Works with AI coding agents that can use shell commands or JavaScript. A
+> future serverless adapter is a separate planned integration.
 
 ## Core use cases
 
@@ -163,7 +164,9 @@ Expose language and feature support so agents can decide whether to use the tool
 - caller/callee graph;
 - Git operations;
 - autonomous agent;
-- remote MCP deployment.
+- MCP server or MCP transport;
+- persistent resident server;
+- remote source processing without an explicit serverless privacy contract.
 
 ## Success metrics
 

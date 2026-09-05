@@ -30,8 +30,8 @@ statistically robust benchmark. Re-run before citing in release materials.
 - **Cold** includes Node process startup, module loading, `Parser.init()`
   (loading web-tree-sitter's own WASM runtime), grammar WASM load, and parse —
   the realistic cost of a single CLI invocation from an AI agent's shell tool.
-- **Warm** is parse-only cost once a long-lived process (the JS API, or a
-  future MCP server) has already loaded the grammar once. This is the number
+- **Warm** is parse-only cost once a long-lived process (the JS API, or a warm
+  serverless instance) has already loaded the grammar once. This is the number
   that matters for repeated calls within one agent session.
 - No native-engine or ast-grep comparison is included yet (docs/PERFORMANCE_BENCHMARK.md
   "Compare" section) — out of scope for this pass.

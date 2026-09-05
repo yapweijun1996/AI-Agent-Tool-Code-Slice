@@ -20,7 +20,7 @@ Enhanced layers:
 
 ```text
 JS API
-MCP
+future serverless function adapter
 agent-specific Skill / Extension / Custom Tool
 ```
 
@@ -35,7 +35,7 @@ Planned progression:
    code-slice outline src/app.ts --json
    code-slice symbol src/app.ts calculateTotal --json
    ```
-2. optional local stdio MCP;
+2. future serverless wrapper, once its provider and source-input contract are selected;
 3. `integrations/codex/SKILL.md` with usage policy.
 
 Recommended Skill behavior:
@@ -51,7 +51,7 @@ Status at documentation creation: **Planned**, not verified.
 
 Primary: shell/CLI.
 
-Enhanced: local MCP configuration.
+Enhanced: future serverless wrapper or direct JS API, once implemented.
 
 Keep permission requirements read-only where platform capabilities permit.
 
@@ -63,8 +63,8 @@ Primary: shell/CLI.
 
 Enhanced:
 
-- local stdio MCP;
-- Gemini CLI Extension packaging instructions and MCP config.
+- serverless wrapper, once implemented;
+- Gemini CLI Extension packaging instructions if still needed.
 
 Status: Planned.
 
@@ -74,7 +74,7 @@ Primary: shell/CLI.
 
 Enhanced options:
 
-- MCP;
+- serverless wrapper, once implemented;
 - thin custom tool wrapper importing Core.
 
 Status: Planned.
@@ -99,7 +99,7 @@ Status: Planned.
 
 Compatibility statement:
 
-> If the agent can execute shell commands, it can potentially use the CLI. If it supports JavaScript tools or MCP, enhanced integration is possible.
+> If the agent can execute shell commands, it can potentially use the CLI. If it supports JavaScript tools, it can use the JS API; future serverless integration depends on the selected provider and its verified adapter.
 
 This is an architectural compatibility claim, not an E2E certification claim.
 

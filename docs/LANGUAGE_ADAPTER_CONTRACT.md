@@ -45,7 +45,7 @@ The exact TypeScript names may change before implementation, but the responsibil
 ## Adapter does not own
 
 - CLI formatting;
-- MCP transport;
+- delivery transport, including any future serverless wrapper;
 - agent integration;
 - filesystem authorization;
 - global JSON envelope;

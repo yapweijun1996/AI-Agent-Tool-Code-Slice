@@ -42,7 +42,7 @@ Threats:
 - absolute paths;
 - symlink escape;
 - root confusion;
-- overly broad MCP host filesystem.
+- overly broad serverless source or storage access.
 
 Recommended:
 
@@ -103,9 +103,13 @@ Runtime should be able to function offline once installed.
 
 Any future network feature requires a new design review and must not silently change the local-only privacy promise.
 
-## MCP security
+## Serverless security boundary
 
-MCP remains read-only. A host's permissions do not grant Code Slice permission to become a write tool.
+No serverless wrapper may assume access to a caller's local filesystem. It must
+accept only an explicitly authorized source representation or storage
+reference, enforce size and timeout limits, avoid source logging by default,
+and preserve the Core read-only contract. A serverless wrapper does not grant
+Code Slice permission to become a write or project-execution tool.
 
 ## Privacy claim wording
 

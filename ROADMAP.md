@@ -47,15 +47,16 @@ Explicitly out:
 - LLM;
 - edits;
 - call graph;
-- remote server requirement;
-- MCP production claim.
+- remote server requirement in Core;
+- MCP server or MCP transport.
 
-## V0.2 — Agent Integration Layer
+## V0.2 — Serverless Integration Layer
 
 Planned:
 
-- local stdio MCP;
-- 3-tool MCP surface;
+- provider-neutral stateless serverless adapter over the Core API;
+- explicit source-input, authentication, privacy, size, timeout, and logging contract;
+- deployment target selection (provider TBD);
 - Codex Skill pack;
 - Claude Code setup guide;
 - real Codex and Claude E2E compatibility evidence;
@@ -76,7 +77,7 @@ Planned:
 
 Candidate gates:
 
-- stable CLI/JSON/API/MCP contract;
+- stable CLI/JSON/API/serverless contract;
 - frozen language certification suite;
 - verified compatibility matrix;
 - documented cross-platform installation;

@@ -11,7 +11,7 @@ Build Agent Code Slice as a small, deterministic, local-first code-context utili
 - Core is local-only and read-only for V0.x.
 - No LLM, remote service, database, account, or API key is required by the core.
 - CLI is the lowest-common agent integration.
-- JS API and optional stdio MCP must call the same Core API.
+- JS API and any future serverless adapter must call the same Core API.
 - Agent-specific Skills / Extensions / custom tools are thin adapters only.
 - Ambiguous symbol resolution must fail closed with candidates.
 - Never guess a symbol, language, or code boundary.
@@ -27,7 +27,7 @@ src/engine/
 src/languages/
 src/schema/
 src/cli/
-src/mcp/
+src/serverless/ (future optional adapter)
 integrations/
 grammars/
 test/
@@ -41,7 +41,8 @@ if (language === "python") ...
 
 Language behavior belongs in registered adapters.
 
-Do not implement separate parsing logic for Codex, Claude Code, Gemini CLI, OpenCode, or MCP.
+Do not implement separate parsing logic for Codex, Claude Code, Gemini CLI,
+OpenCode, or a serverless adapter.
 
 ## Parser policy
 
@@ -99,7 +100,8 @@ Do not change a status from Planned/Implemented to Verified without stored evide
 
 Do not claim "supports all AI agents." Use:
 
-> Works with AI coding agents that can use shell commands, JavaScript, or MCP.
+> Works with AI coding agents that can use shell commands or JavaScript. A
+> future serverless adapter is a separate planned integration.
 
 ## Completion report
 

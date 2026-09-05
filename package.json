@@ -18,7 +18,6 @@
     "ai-agent",
     "code-context",
     "cli",
-    "mcp",
     "code-slicing"
   ],
   "engines": {
