@@ -5,7 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      registry-version:
+        description: "Published agent-code-slice version to install in the registry smoke job (optional)"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   test:
@@ -15,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node: ["20", "22"]
+        node: ["18.18.0", "20", "22"]
 
     steps:
       - uses: actions/checkout@v4
@@ -59,3 +65,50 @@ jobs:
       - name: Verify npm pack contents
         shell: bash
         run: npm pack --dry-run
+
+  registry-install:
+    if: ${{ inputs['registry-version'] != '' }}
+    name: registry install (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["20"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install published package
+        shell: bash
+        env:
+          SMOKE_DIR: ${{ runner.temp }}/agent-code-slice-registry-smoke
+          PACKAGE_VERSION: ${{ inputs['registry-version'] }}
+        run: |
+          mkdir -p "$SMOKE_DIR"
+          cd "$SMOKE_DIR"
+          npm init --yes
+          npm install --ignore-scripts --omit=dev --no-audit --no-fund "agent-code-slice@${PACKAGE_VERSION}"
+          npm ls --omit=dev --depth=0
+
+      - name: Load public API and CLI
+        shell: bash
+        env:
+          SMOKE_DIR: ${{ runner.temp }}/agent-code-slice-registry-smoke
+          PACKAGE_VERSION: ${{ inputs['registry-version'] }}
+        run: |
+          cd "$SMOKE_DIR"
+          node --input-type=module -e 'const pkg = await import("agent-code-slice"); if (typeof pkg.capabilities !== "function" || typeof pkg.outline !== "function" || typeof pkg.slice !== "function") throw new Error("public API exports missing"); const result = await pkg.capabilities(); if (!result || result.ok !== true) throw new Error("capabilities failed"); console.log(JSON.stringify({packageVersion: process.env.PACKAGE_VERSION, esmImport: true, capabilitiesOk: true}));'
+          node node_modules/agent-code-slice/dist/cli/index.js --version
+
+      - name: Verify published CFML embedding
+        shell: bash
+        env:
+          SMOKE_DIR: ${{ runner.temp }}/agent-code-slice-registry-smoke
+        run: |
+          cd "$SMOKE_DIR"
+          node --input-type=module -e 'import path from "node:path"; import { spawnSync } from "node:child_process"; const fixture = path.join(process.env.GITHUB_WORKSPACE, "test", "fixtures", "cfml", "Embedded.cfm"); const result = spawnSync(process.execPath, ["node_modules/agent-code-slice/dist/cli/index.js", "symbol", fixture, "renderInvoice", "--json"], { encoding: "utf8" }); if (result.status !== 0) throw new Error(`CLI exit ${result.status}: ${result.stderr}`); if (result.stderr !== "") throw new Error(`stderr is not clean: ${result.stderr}`); const parsed = JSON.parse(result.stdout); if (parsed.result?.embeddedLanguage !== "javascript") throw new Error("published package lacks CFML JavaScript embedding"); console.log(JSON.stringify({publishedCfmlEmbedding: true, embeddedLanguage: parsed.result.embeddedLanguage}));'

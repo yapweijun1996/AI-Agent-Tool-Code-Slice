@@ -17,6 +17,7 @@ import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { tsxLoaderArgs } from "./run-ts.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const unitDir = path.join(repoRoot, "test", "unit");
@@ -35,7 +36,7 @@ const extraArgs = process.argv.slice(2); // e.g. --watch, forwarded from `npm ru
 
 const result = spawnSync(
   process.execPath,
-  ["--import", "tsx", "--test", ...extraArgs, ...testFiles],
+  [...tsxLoaderArgs(), "--test", ...extraArgs, ...testFiles],
   { stdio: "inherit", cwd: repoRoot },
 );
 

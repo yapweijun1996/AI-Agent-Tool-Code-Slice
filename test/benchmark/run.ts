@@ -141,7 +141,7 @@ statistically robust benchmark. Re-run before citing in release materials.
 - Cold repetitions: ${COLD_REPS} (each a fresh \`node ... cli outline --json\` subprocess; reported as median)
 - Warm repetitions: ${WARM_REPS} (in-process, after one untimed cache-priming call; reported as median)
 - Command: \`npx tsx test/benchmark/run.ts\`
-- Cold CLI invocation: ${useBuilt ? "compiled `dist/cli/index.js` (matches a real npm install)" : "`node --import tsx src/cli/index.ts` (dist/ not built — includes tsx loader overhead)"}
+- Cold CLI invocation: ${useBuilt ? "compiled `dist/cli/index.js` (matches a real npm install)" : "`node scripts/run-ts.mjs src/cli/index.ts` (dist/ not built — includes tsx loader overhead)"}
 
 ## JavaScript outline: cold vs warm
 
