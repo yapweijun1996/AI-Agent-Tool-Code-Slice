@@ -6,6 +6,17 @@ The project follows semantic versioning once the first package is published.
 
 ## [Unreleased]
 
+### Added
+
+- Expanded the deterministic benchmark cohort to all current host adapters and
+  the 5 KB, 50 KB, 500 KB, and 1 MB fixtures, with engine-phase, cold CLI,
+  warm API, output-reduction, RSS, grammar-hash, and fixture-hash evidence.
+- Added the built-package agent-facing E2E workflow for CLI and JS API usage,
+  including exact byte-range validation, fail-closed ambiguity/fallback,
+  schema validation, stdout/stderr separation, and read-only workspace checks.
+- Added cross-platform CI coverage for agent-facing E2E and separate Node 20
+  benchmark artifacts on Ubuntu, Windows, and macOS.
+
 ### Changed
 
 - Confirmed the product boundary: no MCP server or MCP/stdio adapter will be

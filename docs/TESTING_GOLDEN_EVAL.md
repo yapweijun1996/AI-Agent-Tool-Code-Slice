@@ -204,20 +204,37 @@ Before stable release:
 
 Record Node versions, architecture, and package version.
 
-## Agent E2E
+## Agent-facing contract E2E
 
-A separate suite tests real coding agents.
+The deterministic agent-facing suite runs the built package across its actual
+integration boundaries:
 
-Example journey:
+```bash
+npm run test:e2e
+```
 
-1. give the agent a large fixture;
-2. ask for one symbol;
-3. verify it invokes Code Slice where configured;
-4. verify correct slice;
-5. verify no unexpected write;
-6. compare context/tool output against baseline.
+It uses an isolated temporary workspace and verifies this representative agent
+journey:
 
-Do not judge agent behavior and parser correctness as one metric. Separate them.
+1. call the CLI `outline` on a large fixture;
+2. call the CLI `symbol` operation for the discovered symbol;
+3. verify the returned code exactly matches its byte range and reduces context;
+4. verify an ambiguous symbol returns exit code `7`, candidates, and a safe
+   normal-read fallback;
+5. call the built public JS API for the same contract;
+6. validate every machine envelope against the published schema and verify the
+   authorized workspace is unchanged, including file content and metadata.
+
+This is protocol-level agent E2E: it proves the package boundary an agent can
+invoke through shell or JavaScript, without making model calls. It must not be
+reported as Codex, Claude, Gemini, or OpenCode behavioral certification. Those
+vendor-specific live runs remain opt-in and are tracked separately in
+`docs/AGENT_INTEGRATIONS.md`.
+
+The CI test matrix is configured to run this suite on Windows, macOS, and
+Ubuntu across the declared Node versions. Link a green CI run before upgrading
+the public compatibility status. Do not combine its result with parser
+accuracy or latency metrics.
 
 ## Regression rule
 

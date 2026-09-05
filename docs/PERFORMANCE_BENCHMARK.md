@@ -1,11 +1,19 @@
-# Performance Benchmark Plan
+# Performance Benchmark
 
-Status: benchmark design, with an initial single-machine JavaScript result
-set — see [PERFORMANCE_BENCHMARK_RESULTS.md](PERFORMANCE_BENCHMARK_RESULTS.md).
-That pass covers only the JavaScript adapter, one OS/arch, and three of the
-four cohort sizes (no ~1 MB stress case yet); it is evidence toward this
-plan, not a completed cross-platform benchmark. Regenerate via `npm run
-benchmark:fixtures && npm run benchmark`.
+Status: the reproducible benchmark runner is implemented. The checked-in
+report is a local macOS evidence set; the CI workflow runs the same cohort on
+Ubuntu, Windows, and macOS with Node 20 and uploads one artifact per job. Do
+not treat the local report or a single CI artifact as a universal latency
+promise. Regenerate via:
+
+```bash
+npm run benchmark:fixtures && npm run build && npm run --silent benchmark
+```
+
+The runner covers every current host adapter (JavaScript, TypeScript, TSX,
+Python, and CFML), all four documented sizes, grammar/fixture hashes, cold
+CLI and warm API paths, engine phases, output/context reduction, and a
+post-operation RSS observation.
 
 ## Question
 
@@ -41,6 +49,10 @@ Use fixed fixtures and publish fixture hashes.
 - output bytes/lines;
 - context-reduction ratio.
 
+The benchmark has a correctness gate before it emits a report: every fixture
+must parse without a recovery error, `fn0` must be present, CLI JSON and stderr
+must be clean, and cold/warm result envelopes must be byte-for-byte equal.
+
 ## Cold vs warm
 
 Report both:
@@ -73,3 +85,12 @@ Benchmark output should record:
 - fixture hashes;
 - repetitions;
 - command.
+
+Cold samples run through `test/benchmark/cold-worker.mjs`. Each worker starts a
+fresh CLI process for every repetition, while keeping the long-lived report
+process from accumulating WASM child-process teardown state. On Node 23 and
+later the benchmark adds the recorded `--no-maglev` runtime flag because the
+current macOS 26 host can otherwise leave repeated WASM CLI children in V8's
+background compilation queue. This is a benchmark-harness safeguard for that
+runtime, not a product runtime flag; supported CI Node 20 jobs use no extra
+flag.

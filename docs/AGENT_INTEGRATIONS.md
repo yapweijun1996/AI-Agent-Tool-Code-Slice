@@ -26,6 +26,19 @@ agent-specific Skill / Extension / Custom Tool
 
 Agent-specific adapters must not contain independent slicing logic.
 
+## Agent-facing contract E2E
+
+`test/e2e/agent-workflow.test.ts` and `npm run test:e2e` exercise the built CLI
+and public JS API from an isolated workspace. The suite proves the common
+agent-facing contract: outline-to-symbol navigation, exact byte boundaries,
+schema-valid JSON, fail-closed ambiguity with candidates, normal-read
+fallback, stdout/stderr separation, and no workspace writes.
+
+This suite is deterministic and does not call an LLM or a vendor agent CLI.
+It is therefore evidence for the package integration boundary, not a
+Verified Codex/Claude/Gemini/OpenCode compatibility row. Vendor-specific live
+E2E requires an explicit opt-in run and remains tracked in the matrix below.
+
 ## Codex CLI
 
 Planned progression:

@@ -47,6 +47,8 @@ Use for every package release.
 - [ ] Language certification passed.
 - [ ] Malformed fixtures passed.
 - [ ] Ambiguity fixtures passed.
+- [ ] Agent-facing contract E2E passed (`npm run test:e2e`).
+- [ ] Cross-platform benchmark artifacts reviewed for the release commit.
 - [ ] Benchmark rerun if parser/grammar changed.
 
 ## Platform

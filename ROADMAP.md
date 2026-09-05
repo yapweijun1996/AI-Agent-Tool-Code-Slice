@@ -1,6 +1,7 @@
 # Roadmap
 
-Status: Design / pre-implementation.
+Status: V0.1 core is implemented and V0.2.0 CFML paths are released; the
+remaining entries below are planned work or require new evidence.
 
 ## V0.1 — Core Slice Contract
 
@@ -19,6 +20,9 @@ Release CI run
 [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
 also verified public-registry installation of `0.2.0` on Windows, macOS, and
 Ubuntu with Node 20.
+The built-package agent-facing contract E2E and the full five-cohort benchmark
+runner are now implemented; vendor-specific live agent certification and
+cross-platform benchmark evidence still require their own recorded runs.
 
 Planned:
 

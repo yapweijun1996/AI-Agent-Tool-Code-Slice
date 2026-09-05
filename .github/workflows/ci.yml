@@ -53,6 +53,9 @@ jobs:
       - name: Declarative Golden Eval
         run: npm run test:golden
 
+      - name: Agent-facing E2E
+        run: npm run test:e2e
+
       - name: CLI smoke test
         shell: bash
         run: |
@@ -65,6 +68,45 @@ jobs:
       - name: Verify npm pack contents
         shell: bash
         run: npm pack --dry-run
+
+  benchmark:
+    name: benchmark (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["20"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Grammar integrity check
+        run: npm run grammars:verify
+
+      - name: Generate benchmark fixtures
+        run: npm run benchmark:fixtures
+
+      - name: Run benchmark
+        shell: bash
+        run: npm run --silent benchmark > benchmark-results.md
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.os }}-node-${{ matrix.node }}
+          path: benchmark-results.md
+          if-no-files-found: error
 
   registry-install:
     if: ${{ inputs['registry-version'] != '' }}
