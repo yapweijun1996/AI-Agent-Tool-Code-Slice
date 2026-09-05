@@ -86,7 +86,8 @@ Implement:
 
 - CFML host;
 - CFScript symbols;
-- CFQuery named query;
+- CFQuery named query plus SQL-level clause/function symbols;
+- JavaScript `<script>` and CSS `<style>` embedded regions;
 - dynamic query name diagnostics;
 - mixed-language/injection evidence.
 

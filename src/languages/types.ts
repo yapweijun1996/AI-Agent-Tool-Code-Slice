@@ -8,7 +8,7 @@ export interface AdapterContext {
   source: string;
   sourceIndex: SourceIndex;
   filePath: string;
-  /** For adapters that parse embedded regions with a different grammar (e.g. CFML -> cfscript/cfquery). */
+  /** For adapters that parse embedded regions with a different grammar (e.g. CFML -> cfscript/cfquery/javascript/css). */
   engine: ParserEngine;
 }
 
@@ -22,5 +22,7 @@ export interface LanguageAdapter {
   readonly extensions: string[];
   /** Grammar id to load via ParserEngine.loadLanguage(), matches grammars/wasm/manifest.json. */
   readonly grammarId: string;
+  /** Embedded grammar ids this adapter can parse and expose in its symbol inventory. */
+  readonly embeddedLanguages?: readonly string[];
   extractSymbols(ctx: AdapterContext): CodeSymbol[] | Promise<CodeSymbol[]>;
 }

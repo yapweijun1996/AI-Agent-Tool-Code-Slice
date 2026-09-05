@@ -1,0 +1,16 @@
+{
+  "id": "cfml-query-clause-001",
+  "file": "test/fixtures/cfml/Embedded.cfm",
+  "operation": "symbol",
+  "selector": { "name": "WHERE" },
+  "expected": {
+    "kind": "block",
+    "name": "WHERE",
+    "embeddedLanguage": "cfquery",
+    "startLine": 24,
+    "endLine": 24,
+    "startByte": 378,
+    "endByte": 460,
+    "codeIncludes": ["WHERE id =", "<cfqueryparam"]
+  }
+}

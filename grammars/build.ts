@@ -3,7 +3,7 @@
  * Builds every pinned Tree-sitter grammar to a WASM module via `tree-sitter build --wasm`
  * and writes grammars/wasm/manifest.json with sha256 integrity metadata for each artifact.
  *
- * Grammar source packages (tree-sitter-cli and the four grammar packages) are
+ * Grammar source packages (tree-sitter-cli and the five grammar packages) are
  * NOT in package.json — they have nothing to do with running/testing/building
  * the actual project, and @cfmleditor/tree-sitter-cfml's postinstall script
  * fails on every platform unless run with --ignore-scripts (see
@@ -52,6 +52,7 @@ interface GrammarTarget {
 // Keep in sync with the `grammars:setup` script in package.json.
 const PINNED_VERSIONS: Record<string, string> = {
   "tree-sitter-cli": "0.27.0",
+  "tree-sitter-css": "0.25.0",
   "tree-sitter-javascript": "0.25.0",
   "tree-sitter-typescript": "0.23.2",
   "tree-sitter-python": "0.25.0",
@@ -94,6 +95,12 @@ const targets: GrammarTarget[] = [
     sourceDir: path.join(nodeModules, "tree-sitter-python"),
     sourcePackage: "tree-sitter-python",
     sourceVersion: readPinnedVersion("tree-sitter-python"),
+  },
+  {
+    language: "css",
+    sourceDir: path.join(nodeModules, "tree-sitter-css"),
+    sourcePackage: "tree-sitter-css",
+    sourceVersion: readPinnedVersion("tree-sitter-css"),
   },
   {
     language: "cfml",

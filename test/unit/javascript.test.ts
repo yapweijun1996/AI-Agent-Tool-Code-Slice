@@ -11,13 +11,19 @@ function fixture(name: string): string {
   return path.join(fixturesDir, name);
 }
 
-test("capabilities lists all four V0.1 language families", async () => {
+test("capabilities lists the V0.1 host language families and CFML embedded grammars", async () => {
   const envelope = await capabilities();
   assert.equal(envelope.ok, true);
   if (!envelope.ok) return;
-  const result = envelope.result as { languages: Array<{ id: string }> };
+  const result = envelope.result as { languages: Array<{ id: string; embeddedLanguages?: string[] }> };
   const ids = result.languages.map((l) => l.id).sort();
   assert.deepEqual(ids, ["cfml", "javascript", "python", "tsx", "typescript"]);
+  assert.deepEqual(result.languages.find((language) => language.id === "cfml")?.embeddedLanguages, [
+    "cfscript",
+    "cfquery",
+    "javascript",
+    "css",
+  ]);
 });
 
 test("outline finds every top-level symbol in basic.js", async () => {

@@ -1,0 +1,15 @@
+{
+  "id": "cfml-script-001",
+  "file": "test/fixtures/cfml/Embedded.cfm",
+  "operation": "symbol",
+  "selector": { "name": "renderInvoice" },
+  "expected": {
+    "kind": "function",
+    "name": "renderInvoice",
+    "embeddedLanguage": "javascript",
+    "signature": "renderInvoice(id)",
+    "startLine": 3,
+    "endLine": 5,
+    "codeIncludes": ["function renderInvoice(id)", "return id + 1;"]
+  }
+}

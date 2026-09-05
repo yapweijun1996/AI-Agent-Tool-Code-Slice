@@ -49,7 +49,9 @@ CFML first:
 - CFML host;
 - CFScript;
 - CFQuery;
-- JavaScript script region;
+- JavaScript `<script>` region;
+- CSS `<style>` region;
+- SQL-level CFQuery clauses/functions;
 - malformed injection;
 - dynamic query name.
 
@@ -121,20 +123,21 @@ assert `errorCode`, with optional `recoverable`, `candidateCount`, and
 repository; malformed case definitions fail closed before execution.
 
 The checked-in cases cover all current adapters, all four selector operations,
-exact range text, embedded CFML symbols, ambiguity, not-found behavior, and
-malformed-source warnings. JavaScript `<script>` embedding inside CFML remains
-outside the current cases because that adapter capability is still unimplemented
-(see `docs/LANGUAGE_SUPPORT_MATRIX.md`).
+exact range text, CFML JavaScript/CSS embedding, SQL-level CFQuery symbols,
+ambiguity, not-found behavior, and malformed-source warnings. Explicitly
+unsupported/dynamic HTML region types are covered by the CFML unit fixture and
+are skipped rather than guessed.
 
 ### Cross-platform evidence
 
 CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
-passed the 12 cases on Windows, macOS, and Ubuntu with Node 20 and Node 22.
-The run also passed the surrounding 39-test unit suite, grammar integrity
-check, CLI smoke test, and `npm pack --dry-run` step. This records evidence for
-the runner implementation; it does not expand the language support status or
-close the remaining CFML injection limitations.
+passed the then-current 12 cases on Windows, macOS, and Ubuntu with Node 20 and
+Node 22. The run also passed the then-current 39-test unit suite, grammar
+integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in
+set now has 16 cases and the unit suite has 44 tests; the four new CFML cases
+are locally verified only, so this historical run does not expand the
+cross-platform language evidence claim.
 
 ## Metrics
 

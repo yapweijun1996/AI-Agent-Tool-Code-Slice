@@ -1,0 +1,17 @@
+{
+  "id": "cfml-query-function-001",
+  "file": "test/fixtures/cfml/Embedded.cfm",
+  "operation": "symbol",
+  "selector": { "name": "COALESCE" },
+  "expected": {
+    "kind": "function",
+    "name": "COALESCE",
+    "embeddedLanguage": "cfquery",
+    "signature": "COALESCE(total, 0)",
+    "startLine": 22,
+    "endLine": 22,
+    "startByte": 332,
+    "endByte": 350,
+    "codeIncludes": ["COALESCE(total, 0)"]
+  }
+}

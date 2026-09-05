@@ -16,6 +16,7 @@ interface LanguageAdapter {
   displayName: string;
   extensions: string[];
   grammar: GrammarDescriptor;
+  embeddedLanguages?: string[];
 
   detect(input: DetectInput): DetectionResult;
   outline(ctx: ParseContext): Promise<CodeSymbol[]>;
@@ -124,6 +125,12 @@ Public result should include:
 ```
 
 or equivalent host/embedded fields.
+
+For the current CFML adapter, deep CFQuery extraction exposes structurally
+recognized SQL clauses as `block` symbols and query calls as `function` symbols.
+It intentionally does not infer whether every flat SQL identifier is a table or
+column, because the CFQuery grammar does not provide that role as a stable
+syntax node.
 
 ## Adding a language
 

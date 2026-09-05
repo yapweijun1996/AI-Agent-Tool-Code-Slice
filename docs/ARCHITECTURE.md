@@ -170,9 +170,13 @@ Example:
 ```text
 invoice.cfm (CFML)
   |
-  +-- cfquery qInvoice (CFQuery / SQL region)
+  +-- cfquery qEmbedded (CFQuery / SQL region)
+  |     +-- SELECT (SQL clause block)
+  |     +-- COALESCE (SQL function)
   |
-  +-- script saveInvoice (JavaScript region)
+  +-- script renderInvoice (JavaScript region)
+  |
+  +-- style .invoice-card (CSS region)
   |
   +-- cfscript calculateTotal (CFScript region)
 ```

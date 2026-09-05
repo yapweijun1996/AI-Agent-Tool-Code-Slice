@@ -26,7 +26,7 @@ export function buildCapabilities(): Capabilities {
       grammarId: adapter.grammarId,
       grammarVersion: grammarVersion(adapter.grammarId),
     };
-    if (adapter.id === "cfml") cap.embeddedLanguages = ["cfscript", "cfquery"];
+    if (adapter.embeddedLanguages) cap.embeddedLanguages = [...adapter.embeddedLanguages];
     return cap;
   });
 

@@ -16,13 +16,13 @@ banner for what's still macOS-only).
 
 | Language | Extensions | V0.1 target | Mixed-language role | Status |
 |---|---|---:|---|---|
-| JavaScript | `.js .jsx .mjs .cjs` | Yes | embedded in HTML/CFML later | Verified |
+| JavaScript | `.js .jsx .mjs .cjs` | Yes | embedded in HTML/CFML | Verified |
 | TypeScript | `.ts` | Yes | host | Verified |
 | TSX | `.tsx` | Yes | JSX embedded syntax | Verified |
 | Python | `.py` | Yes | host | Verified |
-| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Verified (JS `<script>`/CSS embedding not yet handled — see Known limitations below) |
+| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Verified (existing certification; new embedded JS/CSS/SQL paths are locally verified and pending a new cross-platform run) |
 | CFScript | embedded / script-oriented CFML | Yes | embedded | Verified |
-| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Verified (region is captured as an opaque named symbol; not deep-parsed with the built `cfquery` grammar yet) |
+| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Verified (named query plus SQL clause/function symbols; new deep-parse path is locally verified and pending a new cross-platform run) |
 | Java | `.java` | V0.2 candidate | host | Planned |
 | C# | `.cs` | V0.2 candidate | host | Planned |
 | Go | `.go` | V0.2 candidate | host | Planned |
@@ -51,7 +51,7 @@ Certification evidence should include:
 - malformed-source behavior;
 - known limitations.
 
-## Certification evidence (all 7 grammars, current Verified status)
+## Certification evidence (the original 7 grammars, current Verified status)
 
 - **Run:** GitHub Actions `CI` workflow, commit `0da6685`, run
   [33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301)
@@ -79,9 +79,10 @@ Certification evidence should include:
 
 Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
-passed all 12 frozen cases on the same Windows/macOS/Linux × Node 20/22
-matrix. This is additional regression evidence and does not change the
-language status labels above.
+passed the then-current 12 frozen cases on the same Windows/macOS/Linux × Node
+20/22 matrix. The Golden set now has 16 cases; the four new CFML embedded
+JS/CSS/SQL cases are locally verified only. This is additional regression
+evidence and does not change the language status labels above.
 
 An earlier run on the same commit lineage
 ([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
@@ -94,13 +95,14 @@ unmotivated later.
 
 ## Known limitations (current Verified state)
 
-- CFML's `<script>` (client-side JS) and `<style>` (CSS) regions are not yet
-  re-parsed as embedded languages, even though the CFML grammar exposes
-  `script_element`/`style_element` nodes for them. Only `<cfscript>` and
-  `<cfquery>` are wired up.
-- `cfquery` content is captured as an opaque named `query` symbol (matching
-  the documented JSON example); it is not deep-parsed with the built
-  `cfquery` WASM grammar for SQL-level symbols.
+- CFML `<script>` and `<style>` regions are parsed only when their `type`
+  attribute is absent or an explicitly supported JavaScript/CSS MIME type;
+  dynamic and unknown types are skipped to avoid guessing the embedded
+  language. Standalone CSS is not a registered host adapter.
+- The new CFML embedded JS/CSS/CFQuery paths have local macOS/arm64 evidence;
+  the named cross-platform certification and Golden Eval CI runs above
+  predate these additions. A new matrix run is required before expanding the
+  public cross-platform evidence claim.
 - Destructuring patterns (`const { a, b } = x`, tuple-unpacking assignment in
   Python) are not surfaced as named symbols — a CodeSymbol with
   `name: null, dynamicName: true` is still emitted rather than being dropped.

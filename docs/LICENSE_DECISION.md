@@ -3,7 +3,8 @@
 **Decided: MIT.** A top-level `LICENSE` file and `package.json` `license: "MIT"`
 are in place. All bundled Tree-sitter grammar dependencies
 (`tree-sitter-javascript`, `tree-sitter-typescript`, `tree-sitter-python`,
-`@cfmleditor/tree-sitter-cfml`) and `web-tree-sitter` itself are also MIT —
+`@cfmleditor/tree-sitter-cfml`, `tree-sitter-css`) and `web-tree-sitter` itself
+are also MIT —
 confirmed via `npm view <pkg> license` — so redistributing the compiled WASM
 grammar artifacts under MIT does not conflict with any upstream license.
 

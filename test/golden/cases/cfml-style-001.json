@@ -1,0 +1,14 @@
+{
+  "id": "cfml-style-001",
+  "file": "test/fixtures/cfml/Embedded.cfm",
+  "operation": "symbol",
+  "selector": { "name": ".invoice-card" },
+  "expected": {
+    "kind": "block",
+    "name": ".invoice-card",
+    "embeddedLanguage": "css",
+    "startLine": 10,
+    "endLine": 12,
+    "codeIncludes": [".invoice-card {", "color: blue;"]
+  }
+}

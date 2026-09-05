@@ -8,6 +8,19 @@ The project follows semantic versioning once the first package is published.
 
 ### Added
 
+- Extended the CFML adapter to re-parse HTML-style `<script>` and `<style>`
+  regions with the pinned JavaScript and CSS WASM grammars, and to deep-parse
+  `<cfquery>` bodies with the pinned CFQuery grammar. SQL-level clause blocks
+  and query-function symbols keep their embedded-language metadata and exact
+  host-file ranges; ambiguous or unsupported HTML region types are skipped
+  rather than guessed.
+- Added the pinned `tree-sitter-css@0.25.0` source to the grammar build and
+  integrity pipeline, bringing the committed WASM manifest to 8 grammars.
+- Added CFML mixed-language fixtures, SQL-level fixtures, unsupported-region
+  coverage, recoverable embedded-error coverage, and four declarative Golden
+  Eval cases. The local suite now has 44 unit tests and 16 Golden Eval cases;
+  the new CFML paths are not yet
+  cross-platform certified.
 - Implemented the V0.1 Core API (`capabilities`/`outline`/`slice`), the
   `web-tree-sitter` `WasmEngine` parser backend, and a language adapter
   registry with zero language conditionals in Core.
@@ -18,14 +31,14 @@ The project follows semantic versioning once the first package is published.
   `line`, `range`) with the documented exit-code classes and strict
   stdout/stderr separation in `--json` mode.
 - Implemented the pinned grammar build pipeline (`grammars/build.ts`,
-  `grammars/verify.ts`): builds all 7 grammars to WASM via `tree-sitter build
+  `grammars/verify.ts`): builds all 8 grammars to WASM via `tree-sitter build
   --wasm` (no Docker/emscripten required — the CLI self-hosts a WASI-SDK
   toolchain) and records a sha256 integrity manifest.
-- Added 36 automated tests (`node:test`) covering per-language outline/
+- Added 36 initial automated tests (`node:test`) covering per-language outline/
   symbol/line/range resolution, fail-closed ambiguity and not-found
   behavior, malformed-source recovery, UTF-8 byte-offset correctness for
   multi-byte source text, fake-syntax-in-comments/strings robustness, real
-  grammar load+parse for all 7 WASM grammars, and full JSON Schema
+  grammar load+parse for the original 7 WASM grammars, and full JSON Schema
   validation (via `ajv`) of every success/error envelope shape plus the
   three checked-in `examples/*.json` fixtures.
 - Added an initial single-machine performance benchmark
@@ -45,13 +58,14 @@ The project follows semantic versioning once the first package is published.
   verified-working command reference (decision rule, five CLI examples,
   how to read the JSON output, current honest limits) rather than prose
   spread across contract docs.
-- Added a declarative Golden Eval runner under `test/golden/`, with 12 frozen
+- Added a declarative Golden Eval runner under `test/golden/`, with 16 frozen
   JSON cases covering all current adapters, selector operations, exact range
   text, embedded CFML symbols, ambiguity, not-found behavior, and malformed
   source warnings. `npm run test:golden` executes the cases through the public
   Core API, and CI runs it separately from the unit suite. CI run
   [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
-  passed all 12 cases on Windows/macOS/Linux with Node 20 and Node 22.
+  passed the then-current 12 cases on Windows/macOS/Linux with Node 20 and
+  Node 22; the four newer CFML cases are locally verified only so far.
 
 ### Fixed
 
@@ -63,7 +77,7 @@ The project follows semantic versioning once the first package is published.
   this repo failed on every platform (not just CI) because
   `@cfmleditor/tree-sitter-cfml`'s postinstall script attempts a native
   addon build that fails without `--ignore-scripts` (same root cause as the
-  packaging bug above). That package and the other four grammar-source
+  packaging bug above). That package and the other five grammar-source
   packages were never needed for developing/building/testing the project —
   only for the occasional `grammars:build` maintainer action — so they're
   no longer in `package.json` `devDependencies` at all;
@@ -79,7 +93,7 @@ The project follows semantic versioning once the first package is published.
 
 ### Status
 
-V0.1 core (Core API, CLI, JS API, all four language families, all 7
+V0.1 core (Core API, CLI, JS API, all four language families, the original 7
 grammars) is **Verified** for functional correctness per
 `docs/LANGUAGE_SUPPORT_MATRIX.md`'s certification rule: the 36-test suite
 passes on Windows Server 2025, macOS 26.5.2, and Ubuntu 24.04.4, each on
@@ -90,3 +104,8 @@ Not covered by that evidence: a real registry install on Windows/Linux
 and performance (macOS-only benchmark). MCP, Codex/Gemini/OpenCode
 integration packs, and V0.2+ languages remain unimplemented, per
 `ROADMAP.md`.
+
+The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
+locally verified on macOS/arm64, but are not included in the named
+cross-platform evidence above; their public evidence status is intentionally
+not upgraded here.

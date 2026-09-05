@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "generatedAt": "2026-09-04T13:46:03.927Z",
+  "generatedAt": "2026-09-04T15:38:16.501Z",
   "builtWith": {
     "treeSitterCli": "tree-sitter 0.27.0",
     "platform": "darwin-arm64",
@@ -39,6 +39,14 @@
       "sha256": "3523e4dc3d12894bbb2f7ea4b86b50eec69aed321c3d9b49271d82ed9f5f79b0",
       "sizeBytes": 456723,
       "sourcePackage": "tree-sitter-python",
+      "sourceVersion": "0.25.0"
+    },
+    {
+      "language": "css",
+      "wasmFile": "css.wasm",
+      "sha256": "f0fa4c3171f3322560e3a56445989f2da9d77c38bae61e9f07ae0b3e01d88b36",
+      "sizeBytes": 128821,
+      "sourcePackage": "tree-sitter-css",
       "sourceVersion": "0.25.0"
     },
     {
