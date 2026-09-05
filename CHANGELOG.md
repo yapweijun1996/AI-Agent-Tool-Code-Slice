@@ -18,9 +18,9 @@ The project follows semantic versioning once the first package is published.
   integrity pipeline, bringing the committed WASM manifest to 8 grammars.
 - Added CFML mixed-language fixtures, SQL-level fixtures, unsupported-region
   coverage, recoverable embedded-error coverage, and four declarative Golden
-  Eval cases. The local suite now has 44 unit tests and 16 Golden Eval cases;
-  the new CFML paths are not yet
-  cross-platform certified.
+  Eval cases. The suite now has 44 unit tests and 16 Golden Eval cases; CI run
+  [33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+  covers the new CFML paths on the Windows/macOS/Ubuntu × Node 20/22 matrix.
 - Implemented the V0.1 Core API (`capabilities`/`outline`/`slice`), the
   `web-tree-sitter` `WasmEngine` parser backend, and a language adapter
   registry with zero language conditionals in Core.
@@ -65,7 +65,8 @@ The project follows semantic versioning once the first package is published.
   Core API, and CI runs it separately from the unit suite. CI run
   [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
   passed the then-current 12 cases on Windows/macOS/Linux with Node 20 and
-  Node 22; the four newer CFML cases are locally verified only so far.
+  Node 22. The expanded 16-case set and 44-test suite are covered by the
+  later CI run [33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852).
 
 ### Fixed
 
@@ -106,6 +107,8 @@ integration packs, and V0.2+ languages remain unimplemented, per
 `ROADMAP.md`.
 
 The newer CFML `<script>`/`<style>` and deep-CFQuery paths are implemented and
-locally verified on macOS/arm64, but are not included in the named
-cross-platform evidence above; their public evidence status is intentionally
-not upgraded here.
+covered by CI run
+[33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+on the full Windows/macOS/Ubuntu × Node 20/22 matrix. Packaging from a real
+registry install on Windows/Linux and the performance benchmark remain
+outside that evidence.

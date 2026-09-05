@@ -20,9 +20,9 @@ banner for what's still macOS-only).
 | TypeScript | `.ts` | Yes | host | Verified |
 | TSX | `.tsx` | Yes | JSX embedded syntax | Verified |
 | Python | `.py` | Yes | host | Verified |
-| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Verified (existing certification; new embedded JS/CSS/SQL paths are locally verified and pending a new cross-platform run) |
+| CFML | `.cfm .cfc` | Yes | host for CFScript/CFQuery/JS/CSS | Verified (existing certification plus CI coverage for embedded JS/CSS/SQL) |
 | CFScript | embedded / script-oriented CFML | Yes | embedded | Verified |
-| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Verified (named query plus SQL clause/function symbols; new deep-parse path is locally verified and pending a new cross-platform run) |
+| CFQuery | `<cfquery>` region | Yes | embedded SQL-like region | Verified (named query plus SQL clause/function symbols, covered by the latest CI matrix) |
 | Java | `.java` | V0.2 candidate | host | Planned |
 | C# | `.cs` | V0.2 candidate | host | Planned |
 | Go | `.go` | V0.2 candidate | host | Planned |
@@ -80,9 +80,12 @@ Certification evidence should include:
 Additional declarative Golden Eval evidence: CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
 passed the then-current 12 frozen cases on the same Windows/macOS/Linux × Node
-20/22 matrix. The Golden set now has 16 cases; the four new CFML embedded
-JS/CSS/SQL cases are locally verified only. This is additional regression
-evidence and does not change the language status labels above.
+20/22 matrix. The latest CI run
+[33933501852](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33933501852)
+passed the current 16 cases and 44-test suite on all six jobs, including the
+new CFML embedded JS/CSS/SQL cases. This is additional regression evidence;
+the existing Verified labels remain supported by the original certification
+and the expanded matrix run.
 
 An earlier run on the same commit lineage
 ([33885209969](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885209969))
@@ -99,10 +102,6 @@ unmotivated later.
   attribute is absent or an explicitly supported JavaScript/CSS MIME type;
   dynamic and unknown types are skipped to avoid guessing the embedded
   language. Standalone CSS is not a registered host adapter.
-- The new CFML embedded JS/CSS/CFQuery paths have local macOS/arm64 evidence;
-  the named cross-platform certification and Golden Eval CI runs above
-  predate these additions. A new matrix run is required before expanding the
-  public cross-platform evidence claim.
 - Destructuring patterns (`const { a, b } = x`, tuple-unpacking assignment in
   Python) are not surfaced as named symbols — a CodeSymbol with
   `name: null, dynamicName: true` is still emitted rather than being dropped.
