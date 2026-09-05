@@ -14,6 +14,7 @@ export const typescriptAdapter: LanguageAdapter = {
       sourceIndex: ctx.sourceIndex,
       source: ctx.source,
       wrapper: jsFamilyWrapper,
+      symbolBudget: ctx.symbolBudget,
     });
   },
 };
@@ -29,6 +30,7 @@ export const tsxAdapter: LanguageAdapter = {
       sourceIndex: ctx.sourceIndex,
       source: ctx.source,
       wrapper: jsFamilyWrapper,
+      symbolBudget: ctx.symbolBudget,
     });
   },
 };

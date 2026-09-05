@@ -3,6 +3,7 @@
  * Reuse these; do not invent new codes without a contract-doc update.
  */
 export const ERROR_CODES = [
+  "INVALID_ARGUMENT",
   "FILE_NOT_FOUND",
   "FILE_OUTSIDE_ROOT",
   "FILE_TOO_LARGE",

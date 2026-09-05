@@ -7,7 +7,7 @@ performance claim.
 
 ## Reproducibility
 
-- Commit: `c2b63fae3ae6c8888f89e6640ab88c6b4b53e1ca (working tree dirty)`
+- Commit: `8cfdb110d736e0feb2880a4c19d4eebb40909900 (working tree dirty)`
 - OS: Darwin 25.5.0 (darwin)
 - Architecture: arm64
 - Node version: v23.10.0
@@ -15,11 +15,12 @@ performance claim.
 - Cohorts: JavaScript, TypeScript, TSX, Python, and CFML
 - Fixture sizes: 5 KB, 50 KB, 500 KB, and 1 MB
 - Cold repetitions: 3 per operation (fresh CLI process; median)
-- Warm repetitions: 7 per operation (same-process API; median)
+- Warm repetitions: 7 per operation (same-process API in one isolated worker per target; median)
 - Engine phase repetitions: 3 (fresh engine per sample; median)
 - Raw-read repetitions: 7 (UTF-8 file read; median)
 - CLI command: `node dist/cli/index.js`
 - Node runtime flags: `--no-maglev`
+- Warm worker runtime flags: `--no-maglev --expose-gc`
 - Benchmark command: `npm run benchmark:fixtures && npm run build && npm run --silent benchmark`
 
 ## Grammar hashes
@@ -39,26 +40,26 @@ performance claim.
 
 | Adapter | Fixture | Source bytes | Raw read | Host grammar load | Parse | Adapter extract | Cold outline | Warm outline | Cold symbol | Warm symbol |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| javascript | test/fixtures/benchmark/5kb.js | 5,094 | 0.02 ms | 22.15 ms | 1.63 ms | 2.21 ms | 111.79 ms | 2.83 ms | 117.46 ms | 2.79 ms |
-| javascript | test/fixtures/benchmark/50kb.js | 50,058 | 0.03 ms | 1.36 ms | 12.57 ms | 9.27 ms | 148.18 ms | 21.56 ms | 146.62 ms | 21.75 ms |
-| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 0.20 ms | 9.08 ms | 122.90 ms | 98.42 ms | 426.97 ms | 242.89 ms | 363.07 ms | 229.42 ms |
-| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 0.36 ms | 1.45 ms | 242.82 ms | 160.42 ms | 662.63 ms | 417.28 ms | 525.69 ms | 414.94 ms |
-| typescript | test/fixtures/benchmark/typescript/5kb.ts | 5,007 | 0.02 ms | 14.98 ms | 1.31 ms | 0.84 ms | 109.98 ms | 2.07 ms | 108.01 ms | 2.09 ms |
-| typescript | test/fixtures/benchmark/typescript/50kb.ts | 50,064 | 0.03 ms | 1.20 ms | 12.64 ms | 7.49 ms | 119.99 ms | 21.25 ms | 119.07 ms | 21.74 ms |
-| typescript | test/fixtures/benchmark/typescript/500kb.ts | 500,220 | 0.19 ms | 1.86 ms | 127.06 ms | 85.12 ms | 373.45 ms | 219.01 ms | 333.90 ms | 215.05 ms |
-| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 0.36 ms | 51.66 ms | 254.56 ms | 170.19 ms | 633.12 ms | 431.19 ms | 567.55 ms | 429.01 ms |
-| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 5,056 | 0.02 ms | 22.17 ms | 1.25 ms | 0.89 ms | 105.03 ms | 2.02 ms | 108.59 ms | 2.00 ms |
-| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 50,116 | 0.03 ms | 1.37 ms | 11.77 ms | 8.19 ms | 115.96 ms | 20.02 ms | 118.67 ms | 20.46 ms |
-| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 500,060 | 0.28 ms | 1.32 ms | 112.54 ms | 79.94 ms | 365.85 ms | 199.23 ms | 359.55 ms | 200.18 ms |
-| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 0.32 ms | 2.26 ms | 235.37 ms | 163.90 ms | 641.11 ms | 397.33 ms | 572.76 ms | 391.90 ms |
-| python | test/fixtures/benchmark/python/5kb.py | 5,130 | 0.01 ms | 5.74 ms | 1.76 ms | 1.05 ms | 120.06 ms | 2.03 ms | 119.73 ms | 1.94 ms |
-| python | test/fixtures/benchmark/python/50kb.py | 50,070 | 0.04 ms | 0.76 ms | 10.19 ms | 6.23 ms | 135.25 ms | 18.05 ms | 137.53 ms | 19.06 ms |
-| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 0.17 ms | 1.49 ms | 113.28 ms | 85.48 ms | 417.20 ms | 210.56 ms | 391.11 ms | 201.40 ms |
-| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 0.46 ms | 3.16 ms | 250.50 ms | 175.41 ms | 698.08 ms | 449.72 ms | 637.66 ms | 439.27 ms |
-| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 5,041 | 0.02 ms | 142.16 ms | 0.29 ms | 16.50 ms | 423.45 ms | 3.38 ms | 413.16 ms | 3.48 ms |
-| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 50,024 | 0.03 ms | 2.56 ms | 1.48 ms | 33.51 ms | 465.69 ms | 30.51 ms | 465.02 ms | 30.66 ms |
-| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 0.17 ms | 4.29 ms | 14.65 ms | 688.71 ms | 1031.18 ms | 675.89 ms | 1002.42 ms | 643.93 ms |
-| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 0.34 ms | 48.06 ms | 28.31 ms | 2009.24 ms | 2861.11 ms | 1916.86 ms | 2980.78 ms | 1961.08 ms |
+| javascript | test/fixtures/benchmark/5kb.js | 5,094 | 0.01 ms | 5.86 ms | 1.00 ms | 0.99 ms | 65.78 ms | 1.80 ms | 66.59 ms | 1.88 ms |
+| javascript | test/fixtures/benchmark/50kb.js | 50,058 | 0.02 ms | 1.50 ms | 6.81 ms | 4.95 ms | 70.67 ms | 12.28 ms | 69.93 ms | 14.40 ms |
+| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 0.11 ms | 0.82 ms | 66.17 ms | 48.18 ms | 218.63 ms | 123.92 ms | 192.64 ms | 116.94 ms |
+| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 0.21 ms | 1.09 ms | 133.88 ms | 99.25 ms | 359.97 ms | 241.77 ms | 336.72 ms | 235.93 ms |
+| typescript | test/fixtures/benchmark/typescript/5kb.ts | 5,007 | 0.01 ms | 3.15 ms | 0.81 ms | 0.56 ms | 70.34 ms | 2.02 ms | 67.70 ms | 1.92 ms |
+| typescript | test/fixtures/benchmark/typescript/50kb.ts | 50,064 | 0.02 ms | 1.15 ms | 7.49 ms | 4.64 ms | 74.38 ms | 13.59 ms | 73.94 ms | 15.25 ms |
+| typescript | test/fixtures/benchmark/typescript/500kb.ts | 500,220 | 0.12 ms | 4.33 ms | 71.43 ms | 51.46 ms | 221.03 ms | 130.32 ms | 208.43 ms | 126.91 ms |
+| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 0.21 ms | 0.98 ms | 142.65 ms | 102.52 ms | 375.61 ms | 255.06 ms | 348.84 ms | 252.85 ms |
+| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 5,056 | 0.01 ms | 2.09 ms | 0.72 ms | 0.51 ms | 66.60 ms | 2.08 ms | 69.79 ms | 1.77 ms |
+| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 50,116 | 0.02 ms | 1.08 ms | 6.62 ms | 4.71 ms | 70.87 ms | 14.37 ms | 69.01 ms | 14.65 ms |
+| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 500,060 | 0.12 ms | 1.14 ms | 63.88 ms | 48.05 ms | 203.70 ms | 124.90 ms | 186.95 ms | 120.92 ms |
+| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 0.22 ms | 1.07 ms | 133.25 ms | 96.37 ms | 345.22 ms | 240.81 ms | 320.57 ms | 235.58 ms |
+| python | test/fixtures/benchmark/python/5kb.py | 5,130 | 0.01 ms | 3.38 ms | 0.80 ms | 0.60 ms | 65.07 ms | 2.01 ms | 64.81 ms | 1.75 ms |
+| python | test/fixtures/benchmark/python/50kb.py | 50,070 | 0.02 ms | 0.72 ms | 7.30 ms | 4.90 ms | 71.10 ms | 12.79 ms | 66.76 ms | 14.60 ms |
+| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 0.11 ms | 1.70 ms | 71.27 ms | 53.09 ms | 223.75 ms | 130.06 ms | 203.31 ms | 127.53 ms |
+| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 0.21 ms | 6.41 ms | 142.97 ms | 101.52 ms | 370.12 ms | 267.23 ms | 344.91 ms | 263.40 ms |
+| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 5,041 | 0.01 ms | 6.23 ms | 0.18 ms | 9.18 ms | 228.00 ms | 3.05 ms | 231.86 ms | 2.58 ms |
+| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 50,024 | 0.02 ms | 2.07 ms | 0.89 ms | 22.21 ms | 241.34 ms | 25.41 ms | 245.16 ms | 21.95 ms |
+| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 0.11 ms | 1.67 ms | 8.36 ms | 411.01 ms | 549.09 ms | 449.49 ms | 540.22 ms | 443.17 ms |
+| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 0.21 ms | 3.32 ms | 17.15 ms | 1339.69 ms | 1486.89 ms | 1465.29 ms | 1454.62 ms | 1429.22 ms |
 
 Definitions:
 
@@ -71,7 +72,9 @@ Definitions:
   grammar loads/parses for the embedded regions.
 - **Cold** is the full CLI process boundary: Node startup, module loading,
   parser initialization, grammar load, parse, extraction, and JSON serialization.
-- **Warm** is the same public Core API after one untimed grammar-cache prime.
+- **Warm** is the same public Core API in a short-lived worker after one
+  untimed grammar-cache prime. Repetitions for one target share the worker;
+  targets do not share the worker.
 
 ## Output and context reduction
 
@@ -79,60 +82,62 @@ Definitions:
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 | javascript | test/fixtures/benchmark/5kb.js | 5,094 | 29,529 | 1 | 532 | 1 | 113 | 7 | 97.782% |
 | javascript | test/fixtures/benchmark/50kb.js | 50,058 | 292,566 | 1 | 533 | 1 | 113 | 7 | 99.774% |
-| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 2,962,638 | 1 | 534 | 1 | 113 | 7 | 99.977% |
-| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 5,928,648 | 1 | 532 | 1 | 113 | 7 | 99.989% |
+| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 2,941,984 | 1 | 534 | 1 | 113 | 7 | 99.977% |
+| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 2,941,982 | 1 | 532 | 1 | 113 | 7 | 99.989% |
 | typescript | test/fixtures/benchmark/typescript/5kb.ts | 5,007 | 25,079 | 1 | 575 | 1 | 124 | 4 | 97.523% |
 | typescript | test/fixtures/benchmark/typescript/50kb.ts | 50,064 | 251,980 | 1 | 576 | 1 | 124 | 4 | 99.752% |
 | typescript | test/fixtures/benchmark/typescript/500kb.ts | 500,220 | 2,546,784 | 1 | 577 | 1 | 124 | 4 | 99.975% |
-| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 5,099,870 | 1 | 575 | 1 | 124 | 4 | 99.988% |
+| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 2,847,928 | 1 | 575 | 1 | 124 | 4 | 99.988% |
 | tsx | test/fixtures/benchmark/tsx/5kb.tsx | 5,056 | 19,915 | 1 | 578 | 1 | 138 | 4 | 97.271% |
 | tsx | test/fixtures/benchmark/tsx/50kb.tsx | 50,116 | 198,034 | 1 | 579 | 1 | 138 | 4 | 99.725% |
 | tsx | test/fixtures/benchmark/tsx/500kb.tsx | 500,060 | 1,998,521 | 1 | 580 | 1 | 138 | 4 | 99.972% |
-| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 4,012,153 | 1 | 578 | 1 | 138 | 4 | 99.986% |
+| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 2,895,651 | 1 | 578 | 1 | 138 | 4 | 99.986% |
 | python | test/fixtures/benchmark/python/5kb.py | 5,130 | 31,815 | 1 | 502 | 1 | 85 | 3 | 98.343% |
 | python | test/fixtures/benchmark/python/50kb.py | 50,070 | 311,725 | 1 | 503 | 1 | 85 | 3 | 99.830% |
-| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 3,140,541 | 1 | 504 | 1 | 85 | 3 | 99.983% |
-| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 6,289,431 | 1 | 502 | 1 | 85 | 3 | 99.992% |
+| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 2,772,961 | 1 | 504 | 1 | 85 | 3 | 99.983% |
+| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 2,772,959 | 1 | 502 | 1 | 85 | 3 | 99.992% |
 | cfml | test/fixtures/benchmark/cfml/5kb.cfm | 5,041 | 37,905 | 1 | 658 | 1 | 91 | 4 | 98.195% |
 | cfml | test/fixtures/benchmark/cfml/50kb.cfm | 50,024 | 382,221 | 1 | 661 | 1 | 91 | 4 | 99.818% |
-| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 3,870,847 | 1 | 664 | 1 | 91 | 4 | 99.982% |
-| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 7,764,729 | 1 | 663 | 1 | 91 | 4 | 99.991% |
+| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 3,706,469 | 1 | 664 | 1 | 91 | 4 | 99.982% |
+| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 3,711,468 | 1 | 663 | 1 | 91 | 4 | 99.991% |
 
 The symbol reduction compares the exact `result.code` bytes for `fn0`
 with the full source bytes. The outline and symbol JSON values include the
 complete machine envelope an agent receives, including ranges and warnings.
-The benchmark also compares cold and warm envelopes byte-for-byte to detect
-non-deterministic result changes.
+The benchmark compares a SHA-256 digest of the canonical JSON envelope to
+detect non-deterministic result changes. CLI framing bytes (including its
+terminal newline) are measured separately.
 
 ## RSS observation
 
-| Adapter | Fixture | Current process RSS after warm operation |
+| Adapter | Fixture | Isolated warm-worker RSS after operation |
 |---|---|---:|
-| javascript | test/fixtures/benchmark/5kb.js | 159.6 MiB |
-| javascript | test/fixtures/benchmark/50kb.js | 221.6 MiB |
-| javascript | test/fixtures/benchmark/500kb.js | 560.7 MiB |
-| javascript | test/fixtures/benchmark/1mb.js | 1028.9 MiB |
-| typescript | test/fixtures/benchmark/typescript/5kb.ts | 1038.8 MiB |
-| typescript | test/fixtures/benchmark/typescript/50kb.ts | 1033.9 MiB |
-| typescript | test/fixtures/benchmark/typescript/500kb.ts | 1043.4 MiB |
-| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1170.3 MiB |
-| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 1174.9 MiB |
-| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 1175.2 MiB |
-| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 1185.2 MiB |
-| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1476.7 MiB |
-| python | test/fixtures/benchmark/python/5kb.py | 1477.4 MiB |
-| python | test/fixtures/benchmark/python/50kb.py | 1479.8 MiB |
-| python | test/fixtures/benchmark/python/500kb.py | 1569.6 MiB |
-| python | test/fixtures/benchmark/python/1mb.py | 1661.0 MiB |
-| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 1749.4 MiB |
-| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 1752.6 MiB |
-| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 1725.7 MiB |
-| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1755.8 MiB |
+| javascript | test/fixtures/benchmark/5kb.js | 71.7 MiB |
+| javascript | test/fixtures/benchmark/50kb.js | 89.1 MiB |
+| javascript | test/fixtures/benchmark/500kb.js | 147.8 MiB |
+| javascript | test/fixtures/benchmark/1mb.js | 190.8 MiB |
+| typescript | test/fixtures/benchmark/typescript/5kb.ts | 75.6 MiB |
+| typescript | test/fixtures/benchmark/typescript/50kb.ts | 92.8 MiB |
+| typescript | test/fixtures/benchmark/typescript/500kb.ts | 146.7 MiB |
+| typescript | test/fixtures/benchmark/typescript/1mb.ts | 201.4 MiB |
+| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 76.4 MiB |
+| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 91.8 MiB |
+| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 133.6 MiB |
+| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 163.0 MiB |
+| python | test/fixtures/benchmark/python/5kb.py | 70.5 MiB |
+| python | test/fixtures/benchmark/python/50kb.py | 87.6 MiB |
+| python | test/fixtures/benchmark/python/500kb.py | 159.8 MiB |
+| python | test/fixtures/benchmark/python/1mb.py | 225.7 MiB |
+| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 220.5 MiB |
+| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 236.2 MiB |
+| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 259.5 MiB |
+| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 338.2 MiB |
 
-The RSS column is a post-operation process sample, not a portable OS peak-memory
-profile. The largest observed sample in this run was **1755.8 MiB**;
-use a platform-specific profiler when memory limits are part of a deployment
-decision.
+The RSS column is a post-operation sample from the target's isolated warm
+worker, not a portable OS peak-memory profile. It includes Node, the WASM
+runtime, the loaded grammar, and the target's warm API allocations. The largest
+observed sample in this run was **338.2 MiB**; use a
+platform-specific profiler when memory limits are part of a deployment decision.
 
 ## Fixture hashes
 

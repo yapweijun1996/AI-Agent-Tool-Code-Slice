@@ -76,6 +76,7 @@ export const pythonAdapter: LanguageAdapter = {
       rules,
       sourceIndex: ctx.sourceIndex,
       source: ctx.source,
+      symbolBudget: ctx.symbolBudget,
       wrapper: {
         nodeType: "decorated_definition",
         declarationField: "definition",

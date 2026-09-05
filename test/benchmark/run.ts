@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import type { LanguageAdapter } from "../../src/languages/types.js";
+import { createSymbolBudget } from "../../src/core/limits.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
@@ -31,8 +32,10 @@ const nodeMajor = Number(process.versions.node.split(".")[0]);
 // compilation queue after repeated cold launches. Supported CI versions do
 // not need this workaround; keep the local unsupported runtime bounded.
 const nodeRuntimeArgs = nodeMajor >= 23 ? ["--no-maglev"] : [];
+const warmNodeRuntimeArgs = [...nodeRuntimeArgs, "--expose-gc"];
 const tsxArgs = nodeMajor === 18 ? ["--loader", "tsx"] : ["--import", "tsx"];
 const coldWorkerPath = path.join(repoRoot, "test", "benchmark", "cold-worker.mjs");
+const warmWorkerPath = path.join(repoRoot, "test", "benchmark", "warm-worker.mjs");
 const captureDir = mkdtempSync(path.join(os.tmpdir(), "agent-code-slice-benchmark-"));
 let captureId = 0;
 
@@ -65,8 +68,6 @@ interface BenchmarkTarget {
 }
 
 type BenchmarkRuntime = {
-  outline: typeof import("../../src/core/index.js").outline;
-  slice: typeof import("../../src/core/index.js").slice;
   WasmEngine: typeof import("../../src/engine/wasm-engine.js").WasmEngine;
   detectAdapter: typeof import("../../src/languages/registry.js").detectAdapter;
   SourceIndex: typeof import("../../src/schema/coordinates.js").SourceIndex;
@@ -74,7 +75,7 @@ type BenchmarkRuntime = {
 
 interface CliObservation {
   elapsedMs: number;
-  envelope: Record<string, unknown>;
+  envelopeDigest: string;
   stdoutBytes: number;
   stdoutLines: number;
 }
@@ -199,9 +200,13 @@ function assertExpectedSymbol(envelope: Record<string, unknown>, target: Benchma
   return result.code;
 }
 
-// Redirect worker output to temporary files. The worker returns one compact
-// observation containing the last envelope; a file-backed capture also keeps
-// large outline JSON away from platform pipe buffers.
+function digestEnvelope(envelope: Record<string, unknown>): string {
+  return createHash("sha256").update(JSON.stringify(envelope), "utf8").digest("hex");
+}
+
+// Redirect worker output to temporary files. The worker returns one observation
+// containing the last envelope; validate and digest it here before dropping
+// the large parsed JSON from the long-lived benchmark process.
 function invokeColdWorker(target: BenchmarkTarget, operation: "outline" | "symbol"): ColdObservation {
   const id = captureId++;
   const stdoutPath = path.join(captureDir, `stdout-${id}.txt`);
@@ -237,71 +242,88 @@ function invokeColdWorker(target: BenchmarkTarget, operation: "outline" | "symbo
   if (typeof observation.medianMs !== "number" || typeof observation.last !== "object" || observation.last === null) {
     throw new Error(`Cold worker returned an invalid observation for ${target.displayPath}`);
   }
-  return observation as unknown as ColdObservation;
+  const lastEnvelope = (observation.last as { envelope?: unknown }).envelope;
+  if (typeof lastEnvelope !== "object" || lastEnvelope === null || Array.isArray(lastEnvelope)) {
+    throw new Error(`Cold worker returned an invalid envelope for ${target.displayPath}`);
+  }
+  const typedEnvelope = lastEnvelope as Record<string, unknown>;
+  if (operation === "outline") assertExpectedOutline(typedEnvelope, target, `Cold outline ${target.displayPath}`);
+  else assertExpectedSymbol(typedEnvelope, target, `Cold symbol ${target.displayPath}`);
+  const lastObservation = observation.last as {
+    elapsedMs: number;
+    stdoutBytes: number;
+    stdoutLines: number;
+  };
+  return {
+    medianMs: observation.medianMs,
+    last: {
+      elapsedMs: lastObservation.elapsedMs,
+      envelopeDigest: digestEnvelope(lastEnvelope as Record<string, unknown>),
+      stdoutBytes: lastObservation.stdoutBytes,
+      stdoutLines: lastObservation.stdoutLines,
+    },
+  };
 }
 
 function runCold(target: BenchmarkTarget, operation: "outline" | "symbol"): ColdObservation {
-  const observation = invokeColdWorker(target, operation);
-  if (operation === "outline") assertExpectedOutline(observation.last.envelope, target, `Cold outline ${target.displayPath}`);
-  else assertExpectedSymbol(observation.last.envelope, target, `Cold symbol ${target.displayPath}`);
-  return observation;
+  return invokeColdWorker(target, operation);
 }
 
-async function runWarm(target: BenchmarkTarget, runtime: BenchmarkRuntime): Promise<WarmObservation> {
-  const primed = await runtime.outline({ file: target.filePath });
-  assertExpectedOutline(primed as unknown as Record<string, unknown>, target, `Warm prime ${target.displayPath}`);
-
-  const outlineTimes: number[] = [];
-  const symbolTimes: number[] = [];
-  let lastOutline: CliObservation | undefined;
-  let lastSymbol: CliObservation | undefined;
-  let symbolCode = "";
-
-  for (let repetition = 0; repetition < WARM_REPS; repetition += 1) {
-    const outlineStart = performance.now();
-    const outlineEnvelope = await runtime.outline({ file: target.filePath });
-    const outlineElapsedMs = performance.now() - outlineStart;
-    assertExpectedOutline(outlineEnvelope as unknown as Record<string, unknown>, target, `Warm outline ${target.displayPath}`);
-    const outlineJson = JSON.stringify(outlineEnvelope);
-    lastOutline = {
-      elapsedMs: outlineElapsedMs,
-      envelope: outlineEnvelope as unknown as Record<string, unknown>,
-      stdoutBytes: Buffer.byteLength(outlineJson, "utf8"),
-      stdoutLines: lineCount(outlineJson),
-    };
-    outlineTimes.push(outlineElapsedMs);
-
-    const symbolStart = performance.now();
-    const symbolEnvelope = await runtime.slice({
-      file: target.filePath,
-      selector: { type: "symbol", name: target.selectorName },
-    });
-    const symbolElapsedMs = performance.now() - symbolStart;
-    symbolCode = assertExpectedSymbol(symbolEnvelope as unknown as Record<string, unknown>, target, `Warm symbol ${target.displayPath}`);
-    const symbolJson = JSON.stringify(symbolEnvelope);
-    lastSymbol = {
-      elapsedMs: symbolElapsedMs,
-      envelope: symbolEnvelope as unknown as Record<string, unknown>,
-      stdoutBytes: Buffer.byteLength(symbolJson, "utf8"),
-      stdoutLines: lineCount(symbolJson),
-    };
-    symbolTimes.push(symbolElapsedMs);
+function parseWarmObservation(stdout: string, target: BenchmarkTarget): WarmObservation {
+  const value = requireCliEnvelope(stdout, `Warm worker ${target.displayPath}`);
+  const outline = value.outline;
+  const symbol = value.symbol;
+  if (typeof outline !== "object" || outline === null || Array.isArray(outline)) {
+    throw new Error(`Warm worker returned no outline observation for ${target.displayPath}`);
   }
+  if (typeof symbol !== "object" || symbol === null || Array.isArray(symbol)) {
+    throw new Error(`Warm worker returned no symbol observation for ${target.displayPath}`);
+  }
+  const outlineObservation = outline as Record<string, unknown>;
+  const symbolObservation = symbol as Record<string, unknown>;
+  const numericFields = [
+    ["outline.elapsedMs", outlineObservation.elapsedMs],
+    ["outline.stdoutBytes", outlineObservation.stdoutBytes],
+    ["outline.stdoutLines", outlineObservation.stdoutLines],
+    ["symbol.elapsedMs", symbolObservation.elapsedMs],
+    ["symbol.stdoutBytes", symbolObservation.stdoutBytes],
+    ["symbol.stdoutLines", symbolObservation.stdoutLines],
+    ["symbolCodeBytes", value.symbolCodeBytes],
+    ["symbolCodeLines", value.symbolCodeLines],
+    ["rssBytes", value.rssBytes],
+  ] as const;
+  for (const [name, field] of numericFields) {
+    if (typeof field !== "number" || !Number.isFinite(field) || field < 0) {
+      throw new Error(`Warm worker returned invalid ${name} for ${target.displayPath}`);
+    }
+  }
+  if (
+    typeof outlineObservation.envelopeDigest !== "string" ||
+    typeof symbolObservation.envelopeDigest !== "string"
+  ) {
+    throw new Error(`Warm worker returned invalid envelope digests for ${target.displayPath}`);
+  }
+  return value as unknown as WarmObservation;
+}
 
-  if (!lastOutline || !lastSymbol) throw new Error(`Warm benchmark produced no observations for ${target.displayPath}`);
-  return {
-    outline: {
-      ...lastOutline,
-      elapsedMs: median(outlineTimes),
+function runWarm(target: BenchmarkTarget): WarmObservation {
+  const workerArgs = useBuilt ? [warmWorkerPath] : [...tsxArgs, warmWorkerPath];
+  const result = spawnSync(
+    process.execPath,
+    [...warmNodeRuntimeArgs, ...workerArgs, target.filePath, target.selectorName, String(WARM_REPS)],
+    {
+      cwd: repoRoot,
+      timeout: 180_000,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
     },
-    symbol: {
-      ...lastSymbol,
-      elapsedMs: median(symbolTimes),
-    },
-    symbolCodeBytes: Buffer.byteLength(symbolCode, "utf8"),
-    symbolCodeLines: lineCount(symbolCode),
-    rssBytes: process.memoryUsage().rss,
-  };
+  );
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`Warm worker failed for ${target.displayPath}: ${result.stderr}`);
+  }
+  if (result.stderr !== "") throw new Error(`Warm worker wrote diagnostics for ${target.displayPath}: ${result.stderr}`);
+  return parseWarmObservation(result.stdout, target);
 }
 
 function measureRawRead(target: BenchmarkTarget): number {
@@ -333,24 +355,26 @@ async function measureEnginePhases(
     const totalStart = performance.now();
     const loaded = await engine.loadLanguage(adapter.grammarId);
     const afterLoad = performance.now();
-    const parsed = await engine.parse(source, loaded);
-    const afterParse = performance.now();
-    const symbols = await adapter.extractSymbols({
-      tree: parsed.tree,
-      source,
-      sourceIndex,
-      filePath: target.filePath,
-      engine,
+    let afterParse = 0;
+    const parsed = await engine.withParse(source, loaded, async ({ tree, hadError }) => {
+      afterParse = performance.now();
+      const symbols = await adapter.extractSymbols({
+        tree,
+        source,
+        sourceIndex,
+        filePath: target.filePath,
+        engine,
+        symbolBudget: createSymbolBudget(),
+      });
+      return { hadError, symbols };
     });
     const afterExtract = performance.now();
 
     if (parsed.hadError) throw new Error(`Engine phase parse recovered an error for ${target.displayPath}`);
-    if (!symbols.some((symbol) => symbol.name === target.selectorName)) {
+    if (!parsed.symbols.some((symbol) => symbol.name === target.selectorName)) {
       throw new Error(`Engine phase extraction did not return ${target.selectorName} for ${target.displayPath}`);
     }
 
-    const tree = parsed.tree as unknown as { delete?: () => void };
-    tree.delete?.();
     hostLoad.push(afterLoad - totalStart);
     parse.push(afterParse - afterLoad);
     extract.push(afterExtract - afterParse);
@@ -382,7 +406,7 @@ function getCommit(): string {
 }
 
 function assertDeterministic(cold: CliObservation, warm: CliObservation, context: string): void {
-  if (JSON.stringify(cold.envelope) !== JSON.stringify(warm.envelope)) {
+  if (cold.envelopeDigest !== warm.envelopeDigest) {
     throw new Error(`${context} changed between cold CLI and warm API execution`);
   }
 }
@@ -447,11 +471,12 @@ performance claim.
 - Cohorts: JavaScript, TypeScript, TSX, Python, and CFML
 - Fixture sizes: 5 KB, 50 KB, 500 KB, and 1 MB
 - Cold repetitions: ${COLD_REPS} per operation (fresh CLI process; median)
-- Warm repetitions: ${WARM_REPS} per operation (same-process API; median)
+- Warm repetitions: ${WARM_REPS} per operation (same-process API in one isolated worker per target; median)
 - Engine phase repetitions: ${PHASE_REPS} (fresh engine per sample; median)
 - Raw-read repetitions: ${WARM_REPS} (UTF-8 file read; median)
 - CLI command: \`${useBuilt ? `node ${path.relative(repoRoot, builtCliPath).split(path.sep).join("/")}` : `node ${tsxArgs.join(" ")} ${path.relative(repoRoot, sourceCliPath).split(path.sep).join("/")}`}\`
 - Node runtime flags: \`${nodeRuntimeArgs.length > 0 ? nodeRuntimeArgs.join(" ") : "(none)"}\`
+- Warm worker runtime flags: \`${warmNodeRuntimeArgs.join(" ")}\`
 - Benchmark command: \`npm run benchmark:fixtures && npm run build && npm run --silent benchmark\`
 
 ## Grammar hashes
@@ -477,7 +502,9 @@ Definitions:
   grammar loads/parses for the embedded regions.
 - **Cold** is the full CLI process boundary: Node startup, module loading,
   parser initialization, grammar load, parse, extraction, and JSON serialization.
-- **Warm** is the same public Core API after one untimed grammar-cache prime.
+- **Warm** is the same public Core API in a short-lived worker after one
+  untimed grammar-cache prime. Repetitions for one target share the worker;
+  targets do not share the worker.
 
 ## Output and context reduction
 
@@ -488,19 +515,21 @@ ${outputRows}
 The symbol reduction compares the exact \`result.code\` bytes for \`fn0\`
 with the full source bytes. The outline and symbol JSON values include the
 complete machine envelope an agent receives, including ranges and warnings.
-The benchmark also compares cold and warm envelopes byte-for-byte to detect
-non-deterministic result changes.
+The benchmark compares a SHA-256 digest of the canonical JSON envelope to
+detect non-deterministic result changes. CLI framing bytes (including its
+terminal newline) are measured separately.
 
 ## RSS observation
 
-| Adapter | Fixture | Current process RSS after warm operation |
+| Adapter | Fixture | Isolated warm-worker RSS after operation |
 |---|---|---:|
 ${rssRows}
 
-The RSS column is a post-operation process sample, not a portable OS peak-memory
-profile. The largest observed sample in this run was **${formatMiB(maxRss)} MiB**;
-use a platform-specific profiler when memory limits are part of a deployment
-decision.
+The RSS column is a post-operation sample from the target's isolated warm
+worker, not a portable OS peak-memory profile. It includes Node, the WASM
+runtime, the loaded grammar, and the target's warm API allocations. The largest
+observed sample in this run was **${formatMiB(maxRss)} MiB**; use a
+platform-specific profiler when memory limits are part of a deployment decision.
 
 ## Fixture hashes
 
@@ -544,15 +573,12 @@ async function main(): Promise<void> {
     );
   }
 
-  const [coreModule, engineModule, registryModule, coordinatesModule] = await Promise.all([
-    import("../../src/core/index.js"),
+  const [engineModule, registryModule, coordinatesModule] = await Promise.all([
     import("../../src/engine/wasm-engine.js"),
     import("../../src/languages/registry.js"),
     import("../../src/schema/coordinates.js"),
   ]);
   const runtime: BenchmarkRuntime = {
-    outline: coreModule.outline,
-    slice: coreModule.slice,
     WasmEngine: engineModule.WasmEngine,
     detectAdapter: registryModule.detectAdapter,
     SourceIndex: coordinatesModule.SourceIndex,
@@ -566,7 +592,7 @@ async function main(): Promise<void> {
     const cold = coldResults.get(target.displayPath);
     if (!cold) throw new Error(`Cold benchmark result missing for ${target.displayPath}`);
     const phases = await measureEnginePhases(target, adapter, runtime);
-    const warm = await runWarm(target, runtime);
+    const warm = runWarm(target);
     assertDeterministic(cold.outline.last, warm.outline, `Outline ${target.displayPath}`);
     assertDeterministic(cold.symbol.last, warm.symbol, `Symbol ${target.displayPath}`);
 

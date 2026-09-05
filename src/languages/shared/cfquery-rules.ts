@@ -2,6 +2,7 @@ import type { Node } from "web-tree-sitter";
 import type { CodeSymbol } from "../../schema/types.js";
 import type { SourceIndex } from "../../schema/coordinates.js";
 import type { ExtractedName, SymbolRule } from "./walk.js";
+import type { SymbolBudget } from "../types.js";
 
 function queryFunctionName(node: Node): ExtractedName {
   const name = node.childForFieldName("name");
@@ -94,7 +95,12 @@ function rangeBetween(sourceIndex: SourceIndex, start: Node, end: Node) {
   });
 }
 
-function extractClausesFromContainer(container: Node, sourceIndex: SourceIndex, results: CodeSymbol[]): void {
+function extractClausesFromContainer(
+  container: Node,
+  sourceIndex: SourceIndex,
+  results: CodeSymbol[],
+  symbolBudget: SymbolBudget,
+): void {
   const children = container.namedChildren.filter((child): child is Node => child !== null);
   const starts: ClauseStart[] = [];
 
@@ -117,6 +123,7 @@ function extractClausesFromContainer(container: Node, sourceIndex: SourceIndex, 
     const end = children[endChildIndex - 1] ?? start.node;
     if (!end || end.endIndex <= start.node.startIndex) continue;
 
+    symbolBudget.consume();
     results.push({
       kind: "block",
       nativeKind: "query_clause",
@@ -129,7 +136,9 @@ function extractClausesFromContainer(container: Node, sourceIndex: SourceIndex, 
   }
 
   for (const child of children) {
-    if (child.type === "parenthesized_query_node") extractClausesFromContainer(child, sourceIndex, results);
+    if (child.type === "parenthesized_query_node") {
+      extractClausesFromContainer(child, sourceIndex, results, symbolBudget);
+    }
   }
 }
 
@@ -138,8 +147,8 @@ function extractClausesFromContainer(container: Node, sourceIndex: SourceIndex, 
  * This adapter-level pass uses only its named query_keyword nodes to create
  * bounded clause containers; it does not infer table/column roles from names.
  */
-export function extractCfqueryClauses(root: Node, sourceIndex: SourceIndex): CodeSymbol[] {
+export function extractCfqueryClauses(root: Node, sourceIndex: SourceIndex, symbolBudget: SymbolBudget): CodeSymbol[] {
   const results: CodeSymbol[] = [];
-  extractClausesFromContainer(root, sourceIndex, results);
+  extractClausesFromContainer(root, sourceIndex, results, symbolBudget);
   return results;
 }

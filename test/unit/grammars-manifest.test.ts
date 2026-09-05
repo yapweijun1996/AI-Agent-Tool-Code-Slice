@@ -53,12 +53,14 @@ test("every grammar in the manifest actually loads via web-tree-sitter and parse
     }
 
     const parser = new Parser();
+    let tree: ReturnType<Parser["parse"]> | undefined;
     try {
       parser.setLanguage(language);
-      const tree = parser.parse("x");
+      tree = parser.parse("x");
       assert.ok(tree, `${grammar.language}: parse() returned no tree for a minimal fixture`);
       assert.ok(tree.rootNode, `${grammar.language}: parsed tree has no root node`);
     } finally {
+      tree?.delete();
       parser.delete();
     }
   }

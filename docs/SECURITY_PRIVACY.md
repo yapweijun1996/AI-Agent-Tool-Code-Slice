@@ -6,7 +6,7 @@ Make the default Core safe to use on private source code without sending code to
 
 ## Local-first boundary
 
-Normal slicing should require only:
+Normal slicing currently requires only:
 
 - local Node.js runtime;
 - local package files;
@@ -44,12 +44,11 @@ Threats:
 - root confusion;
 - overly broad serverless source or storage access.
 
-Recommended:
+Current implementation:
 
-- optional required root in managed-agent integrations;
-- canonicalize path;
-- validate requested target remains within root;
-- define symlink policy explicitly;
+- optional root in managed-agent integrations;
+- canonicalize paths and validate the requested target remains within root;
+- reject lexical and realpath symlink escapes;
 - reject on uncertainty.
 
 ## Untrusted source

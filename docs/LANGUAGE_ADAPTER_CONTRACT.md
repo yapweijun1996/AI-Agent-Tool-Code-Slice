@@ -1,6 +1,7 @@
 # Language Adapter Contract
 
-Status: Planned V0.1.
+Status: Implemented for the current adapter registry; latest hardening changes
+remain subject to the cross-platform release gate.
 
 ## Purpose
 
@@ -12,23 +13,18 @@ Core must remain language-agnostic.
 
 ```ts
 interface LanguageAdapter {
-  id: string;
-  displayName: string;
-  extensions: string[];
-  grammar: GrammarDescriptor;
-  embeddedLanguages?: string[];
-
-  detect(input: DetectInput): DetectionResult;
-  outline(ctx: ParseContext): Promise<CodeSymbol[]>;
-  resolveSymbol(ctx: ParseContext, selector: SymbolSelector): Promise<Resolution>;
-  resolveLine(ctx: ParseContext, line: number): Promise<Resolution>;
-  resolveRange(ctx: ParseContext, range: LineRange): Promise<Resolution>;
-
-  capabilities(): LanguageCapabilities;
+  readonly id: string;
+  readonly extensions: string[];
+  readonly grammarId: string;
+  readonly embeddedLanguages?: readonly string[];
+  extractSymbols(ctx: AdapterContext): CodeSymbol[] | Promise<CodeSymbol[]>;
 }
 ```
 
-The exact TypeScript names may change before implementation, but the responsibilities should not.
+The current `AdapterContext` includes the scoped Tree-sitter tree, source
+coordinates, the parser engine for embedded regions, and a shared symbol
+budget. Resolution and envelope assembly remain Core responsibilities; the
+adapter owns language-specific extraction and normalization.
 
 ## Adapter owns
 

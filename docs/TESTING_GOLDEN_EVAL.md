@@ -89,9 +89,10 @@ npm run test:golden
 The same cases are also exercised by `npm test` through
 `test/unit/golden-eval.test.ts`. Case files are loaded in deterministic filename
 order and then evaluated in `id` order. A case failure reports its case ID and
-does not rewrite or regenerate the expected result. Every actual envelope is
-validated against `schemas/code-slice-result-v1.schema.json` before its case
-assertions run.
+does not rewrite or regenerate the expected result. Every actual Core envelope
+is validated against `schemas/code-slice-result-v1.schema.json` before its case
+assertions run. CLI argument-shape failures are covered separately by the
+agent-facing E2E suite and validate against the additive v1.1 CLI envelope.
 
 The runner accepts the four delivery-level operations below. `symbol`, `line`,
 and `range` are mapped to the corresponding Core `slice()` selector; `outline`
@@ -135,7 +136,8 @@ CI run
 passed the then-current 12 cases on Windows, macOS, and Ubuntu with Node 20 and
 Node 22. The run also passed the then-current 39-test unit suite, grammar
 integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in
-set now has 16 cases and the unit suite has 47 tests. The latest CI run
+set now has 16 cases; the published release evidence covers 47 tests, while
+the current working tree has 55 tests. The latest CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 passed the current 16 cases, 47-test suite, grammar integrity check, CLI smoke
 test, and `npm pack --dry-run` on all nine Windows/macOS/Ubuntu × Node 18.18.0/20/22
@@ -175,8 +177,8 @@ Malformed fixtures must surface expected warning/error state.
 
 ### Schema validity
 
-Every CLI result and future serverless JSON result validates against the
-published schema.
+Every Core operation result and future serverless JSON result validates against
+the v1 schema; CLI usage errors validate against the additive v1.1 schema.
 
 ## Benchmark cohorts
 
@@ -237,6 +239,14 @@ Ubuntu across the declared Node versions. CI run
 passed the suite on all nine matrix jobs. This is package-level cross-platform
 evidence, not Codex, Claude, Gemini, or OpenCode behavioral certification. Do
 not combine its result with parser accuracy or latency metrics.
+
+## Runtime hardening coverage
+
+The unit suite also covers runtime request validation, bounded symbol/output
+budgets, parser/tree cleanup after successful and throwing visitors, and
+coalescing concurrent first grammar loads. These checks protect the local
+agent process from malformed requests and native WASM resource retention; they
+do not replace cross-platform CI or an OS-level memory profile.
 
 ## Regression rule
 

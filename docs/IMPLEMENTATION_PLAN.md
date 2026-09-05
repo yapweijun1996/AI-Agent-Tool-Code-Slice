@@ -122,12 +122,19 @@ cases in `test/golden/cases/`; `npm run test:golden` executes the cases through
 the public Core API and `npm test` includes a regression check for the runner.
 The benchmark runner now covers all current host adapters and the 5 KB, 50 KB,
 500 KB, and 1 MB cohorts, with cold CLI, warm API, engine-phase,
-context-reduction, RSS, grammar-hash, and fixture-hash evidence. The CI
+context-reduction, isolated per-target RSS, grammar-hash, and fixture-hash
+evidence. The CI
 workflow uploads the same report for each supported OS on Node 20. The
 agent-facing contract E2E is implemented under `test/e2e/` and runs through
 the built CLI and public JS API without model calls. Both remain separately
 documented in `docs/PERFORMANCE_BENCHMARK_RESULTS.md` and
 `docs/TESTING_GOLDEN_EVAL.md`.
+
+The current hardening phase additionally covers scoped native Tree cleanup,
+runtime request validation, bounded symbol/output materialization, strict CLI
+argument parsing, and concurrent grammar-load coalescing. These changes are
+implemented locally and require a fresh cross-platform CI run before a new
+release status is claimed.
 
 No marketing benchmark before this phase.
 

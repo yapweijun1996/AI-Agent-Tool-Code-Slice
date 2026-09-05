@@ -1,6 +1,6 @@
 # Documentation Index
 
-This pack is intended to be copied directly into a new public GitHub repository.
+This index describes the current public repository documentation.
 
 ## Start here
 
@@ -15,8 +15,9 @@ This pack is intended to be copied directly into a new public GitHub repository.
 - `docs/CLI_CONTRACT.md`
 - `docs/JSON_SCHEMA.md`
 - `schemas/code-slice-result-v1.schema.json`
+- `schemas/code-slice-result-v1.1.schema.json`
 - `docs/LANGUAGE_ADAPTER_CONTRACT.md`
-- `docs/MCP_INTEGRATION.md`
+- `docs/SERVERLESS_INTEGRATION.md`
 - `docs/AGENT_INTEGRATIONS.md`
 
 ## Platform and quality
@@ -45,6 +46,7 @@ This pack is intended to be copied directly into a new public GitHub repository.
 - `docs/adr/0001-web-tree-sitter-wasm-default.md`
 - `docs/adr/0002-cli-first-multi-agent-integration.md`
 - `docs/adr/0003-read-only-fail-closed-v0.md`
+- `docs/adr/0004-serverless-no-mcp.md`
 
 ## Examples
 

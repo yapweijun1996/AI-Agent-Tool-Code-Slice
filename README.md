@@ -2,8 +2,8 @@
 
 Precise, language-aware code context for AI coding agents.
 
-> Status: **V0.1 core Verified** (functional correctness and cross-platform package/install CI) — performance is **not yet Verified** across the supported OS/Node matrix.
-> The Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters described below have a 47-test regression suite passing on Windows Server 2025, macOS 26, and Ubuntu 24.04 (Node 18.18.0, 20, and 22 each) — see the [CI workflow](.github/workflows/ci.yml) and `CHANGELOG.md` for the exact run. The repository includes a 16-case declarative Golden Eval regression set (`npm run test:golden`); release CI run [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994) passed all 47 unit tests and 16 Golden cases, including the CFML embedded JS/CSS/SQL paths, on the Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix, and installed `agent-code-slice@0.2.0` successfully from the public registry on all three platforms with Node 20. CI also confirms `npm pack` resolves correctly on all three. `npm run test:e2e` now verifies the built CLI/JS API agent-facing contract, while vendor-specific live agent behavior remains unverified. The performance benchmark (`docs/PERFORMANCE_BENCHMARK_RESULTS.md`) now covers all current adapters and four sizes; CI run [33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579) passed the Ubuntu/Windows/macOS × Node 20 benchmark jobs and uploaded three non-expired report artifacts. This is recorded evidence for that matrix, not a universal latency promise across every supported Node version. No MCP server is planned; the future serverless adapter and agent-specific integration packs remain **Planned** (V0.2).
+> Status: **V0.1 core Verified** (functional correctness and cross-platform package/install CI). The published package is `agent-code-slice@0.2.0`; the current working tree adds production-hardening for parser resource cleanup, bounded requests/results, and strict CLI validation. Those latest changes are locally verified but remain a release gate until the cross-platform CI matrix is rerun.
+> The published Core API, CLI, JS API, and JavaScript/TypeScript/TSX/Python/CFML adapters have a 47-test regression suite passing on Windows Server 2025, macOS 26, and Ubuntu 24.04 (Node 18.18.0, 20, and 22 each) — see the [CI workflow](.github/workflows/ci.yml) and `CHANGELOG.md` for the exact run. The current working tree has 55 unit tests and 3 deterministic agent-facing E2E cases locally, plus the 16-case declarative Golden Eval regression set (`npm run test:golden`). Release CI run [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994) passed the published `0.2.0` package on the Windows/macOS/Ubuntu × Node 18.18.0/20/22 matrix and installed it from the public registry on all three platforms with Node 20. The benchmark (`docs/PERFORMANCE_BENCHMARK_RESULTS.md`) covers all current adapters and four sizes; CI run [33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579) passed the previous runner on the Ubuntu/Windows/macOS × Node 20 matrix. The current lifecycle/budget benchmark has been rerun locally and is not yet a new cross-platform claim. No MCP server is planned; the future serverless adapter and agent-specific integration packs remain **Planned** (V0.2).
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.
 
@@ -67,13 +67,13 @@ code-slice line src/app.ts 382 --json
 code-slice range src/app.ts 380:390 --expand --json
 ```
 
-Every command above prints **exactly one JSON document to stdout** when `--json` is passed (schema: `schemas/code-slice-result-v1.schema.json`, described in `docs/JSON_SCHEMA.md`) — safe to pipe and parse directly, e.g. `code-slice symbol src/app.ts calculateTotal --json | jq -r .result.code`. Diagnostics go to stderr, never stdout.
+Every command above prints **exactly one JSON document to stdout** when `--json` is passed (Core results use `schemas/code-slice-result-v1.schema.json`; CLI usage errors use the additive `schemas/code-slice-result-v1.1.schema.json`, both described in `docs/JSON_SCHEMA.md`) — safe to pipe and parse directly, e.g. `code-slice symbol src/app.ts calculateTotal --json | jq -r .result.code`. Diagnostics go to stderr, never stdout.
 
 Read `result.code` for the exact text; do not re-derive it from `result.range` yourself. On failure, check `error.code` (stable values like `SYMBOL_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_UNSUPPORTED` — full list in `docs/JSON_SCHEMA.md`) rather than parsing `error.message`, and fall back to reading the file normally — this tool never guesses a symbol, language, or boundary, so an error here is real signal, not a bug to route around. `SYMBOL_AMBIGUOUS` includes bounded `candidates`; either narrow with `--kind` or pick one and say which.
 
 From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
 
-**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
+**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, and serialized-output budgets; malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
 
 ## Product principles
 
@@ -86,9 +86,9 @@ From Node.js/TypeScript, the same three operations are a JS API (`import { capab
 7. **On-demand integration** — CLI is the lowest common compatibility layer; JS API and any future serverless wrapper are thin adapters over Core, with no resident MCP server.
 8. **Small public contract** — stable CLI, JSON schema, and JS API; implementation details remain replaceable.
 
-## Planned V0.1 languages
+## Language roadmap
 
-| Language | Planned V0.1 | Notes |
+| Language | V0.1 target | Notes |
 |---|---:|---|
 | JavaScript | Yes | `.js`, `.jsx`, `.mjs`, `.cjs` |
 | TypeScript | Yes | `.ts`, `.tsx` |
@@ -104,7 +104,7 @@ From Node.js/TypeScript, the same three operations are a JS API (`import { capab
 
 See [docs/LANGUAGE_SUPPORT_MATRIX.md](docs/LANGUAGE_SUPPORT_MATRIX.md).
 
-## Planned CLI
+## CLI
 
 ```bash
 code-slice capabilities --json
@@ -124,7 +124,7 @@ exit code = execution status
 
 No banners, progress prose, or logging may be mixed into `stdout` when `--json` is active.
 
-## Planned JavaScript API
+## JavaScript API
 
 ```js
 import { capabilities, outline, slice } from "agent-code-slice";

@@ -1,10 +1,11 @@
 # Parser Engine Decision
 
-Status: Design decision.
+Status: Accepted and implemented for the current WASM backend.
 
 ## Decision
 
-Use `web-tree-sitter` with pinned Tree-sitter WASM grammars as the planned default V0.1 parser engine.
+Use `web-tree-sitter` with pinned Tree-sitter WASM grammars as the current
+default V0.1 parser engine.
 
 Treat:
 

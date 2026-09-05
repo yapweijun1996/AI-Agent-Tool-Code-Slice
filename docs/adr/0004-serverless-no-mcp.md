@@ -1,4 +1,4 @@
-# ADR 0003: Serverless Adapter, No MCP Server
+# ADR 0004: Serverless Adapter, No MCP Server
 
 Status: Accepted
 

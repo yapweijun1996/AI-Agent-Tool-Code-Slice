@@ -1,5 +1,5 @@
 import type { Node } from "web-tree-sitter";
-import type { AdapterContext, LanguageAdapter } from "./types.js";
+import type { AdapterContext, LanguageAdapter, SymbolBudget } from "./types.js";
 import type { CodeSymbol, SourceRange } from "../schema/types.js";
 import type { LoadedLanguage } from "../engine/parser-engine.js";
 import { SourceIndex, offsetSourceRange } from "../schema/coordinates.js";
@@ -51,7 +51,12 @@ function getCfAttributeValue(tagNode: Node, attrName: string): { value: string |
   return { value: null, dynamic: false };
 }
 
-function pairComponentTags(root: Node, sourceIndex: SourceIndex, language: string): CodeSymbol[] {
+function pairComponentTags(
+  root: Node,
+  sourceIndex: SourceIndex,
+  language: string,
+  symbolBudget: SymbolBudget,
+): CodeSymbol[] {
   const opens = root.descendantsOfType("cf_component_open_tag");
   const closes = root.descendantsOfType("cf_component_close_tag");
   const tagged = [
@@ -93,13 +98,15 @@ function pairComponentTags(root: Node, sourceIndex: SourceIndex, language: strin
         { code: "DYNAMIC_NAME", message: "CFML component name attribute could not be statically resolved.", severity: "warning" },
       ];
     }
+    symbolBudget.consume();
     components.push(symbol);
   }
   return components;
 }
 
-function extractFunctions(root: Node, sourceIndex: SourceIndex, language: string): CodeSymbol[] {
-  return root.descendantsOfType("cf_function_tag").map((node) => {
+function extractFunctions(root: Node, sourceIndex: SourceIndex, language: string, symbolBudget: SymbolBudget): CodeSymbol[] {
+  const functions: CodeSymbol[] = [];
+  for (const node of root.descendantsOfType("cf_function_tag")) {
     const { value: name, dynamic } = getCfAttributeValue(node, "name");
     const symbol: CodeSymbol = {
       kind: "function",
@@ -115,8 +122,10 @@ function extractFunctions(root: Node, sourceIndex: SourceIndex, language: string
         { code: "DYNAMIC_NAME", message: "CFML function name attribute could not be statically resolved.", severity: "warning" },
       ];
     }
-    return symbol;
-  });
+    symbolBudget.consume();
+    functions.push(symbol);
+  }
+  return functions;
 }
 
 interface QueryExtraction {
@@ -172,16 +181,18 @@ async function parseEmbeddedSymbols(
     if (!content || content.text.trim().length === 0) continue;
 
     const origin = ctx.sourceIndex.toSourceRange(content);
-    const { tree: subTree, hadError } = await ctx.engine.parse(content.text, loaded);
-    const subIndex = new SourceIndex(content.text);
-    const subSymbols = walkSymbols(subTree.rootNode, {
-      language: options.language,
-      rules: options.rules,
-      sourceIndex: subIndex,
-      source: content.text,
-      wrapper: options.wrapper,
+    await ctx.engine.withParse(content.text, loaded, ({ tree: subTree, hadError }) => {
+      const subIndex = new SourceIndex(content.text);
+      const subSymbols = walkSymbols(subTree.rootNode, {
+        language: options.language,
+        rules: options.rules,
+        sourceIndex: subIndex,
+        source: content.text,
+        wrapper: options.wrapper,
+        symbolBudget: ctx.symbolBudget,
+      });
+      results.push(...rebaseEmbeddedSymbols(subSymbols, origin, options.language, hadError));
     });
-    results.push(...rebaseEmbeddedSymbols(subSymbols, origin, options.language, hadError));
   }
   return results;
 }
@@ -271,6 +282,7 @@ async function extractQueries(
         { code: "DYNAMIC_NAME", message: "CFML query name attribute could not be statically resolved.", severity: "warning" },
       ];
     }
+    ctx.symbolBudget.consume();
     queries.push(symbol);
 
     const content = node.namedChildren.find((child) => child?.type === "cf_query_content");
@@ -278,20 +290,20 @@ async function extractQueries(
 
     loaded ??= await ctx.engine.loadLanguage("cfquery");
     const origin = sourceIndex.toSourceRange(content);
-    const { tree: subTree, hadError } = await ctx.engine.parse(content.text, loaded);
-    if (hadError) symbol.warnings = [...(symbol.warnings ?? []), embeddedParseWarning("cfquery")];
+    await ctx.engine.withParse(content.text, loaded, ({ tree: subTree, hadError }) => {
+      if (hadError) symbol.warnings = [...(symbol.warnings ?? []), embeddedParseWarning("cfquery")];
 
-    const subIndex = new SourceIndex(content.text);
-    const parsedSymbols = [
-      ...walkSymbols(subTree.rootNode, {
+      const subIndex = new SourceIndex(content.text);
+      const functionSymbols = walkSymbols(subTree.rootNode, {
         language: "cfquery",
         rules: cfqueryRules,
         sourceIndex: subIndex,
         source: content.text,
-      }),
-      ...extractCfqueryClauses(subTree.rootNode, subIndex),
-    ];
-    sqlSymbols.push(...rebaseEmbeddedSymbols(parsedSymbols, origin, "cfquery", hadError));
+        symbolBudget: ctx.symbolBudget,
+      });
+      const clauseSymbols = extractCfqueryClauses(subTree.rootNode, subIndex, ctx.symbolBudget);
+      sqlSymbols.push(...rebaseEmbeddedSymbols([...functionSymbols, ...clauseSymbols], origin, "cfquery", hadError));
+    });
   }
 
   return { queries, sqlSymbols };
@@ -331,8 +343,8 @@ export const cfmlAdapter: LanguageAdapter = {
     const root = ctx.tree.rootNode;
     const language = "cfml";
 
-    const components = pairComponentTags(root, ctx.sourceIndex, language);
-    const functions = extractFunctions(root, ctx.sourceIndex, language);
+    const components = pairComponentTags(root, ctx.sourceIndex, language, ctx.symbolBudget);
+    const functions = extractFunctions(root, ctx.sourceIndex, language, ctx.symbolBudget);
     const { queries, sqlSymbols } = await extractQueries(root, ctx.sourceIndex, ctx, language);
     const embeddedSymbols = await extractEmbeddedSymbols(root, ctx);
 

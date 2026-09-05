@@ -1,6 +1,7 @@
 import type { Node } from "web-tree-sitter";
 import type { SourceIndex } from "../../schema/coordinates.js";
 import type { CodeSymbol, SymbolKind, SymbolRef } from "../../schema/types.js";
+import type { SymbolBudget } from "../types.js";
 
 export interface ExtractedName {
   name: string | null;
@@ -26,6 +27,7 @@ export interface WalkConfig {
   rules: SymbolRule[];
   sourceIndex: SourceIndex;
   source: string;
+  symbolBudget: SymbolBudget;
   /**
    * Optional language-specific "wrapper" node type (e.g. JS/TS `export_statement`)
    * whose range should be used instead of the inner declaration's range, so the
@@ -68,6 +70,11 @@ function findWrappedMatches(rules: SymbolRule[], node: Node): Array<{ node: Node
 
 export function walkSymbols(root: Node, config: WalkConfig): CodeSymbol[] {
   const symbols: CodeSymbol[] = [];
+
+  function addSymbol(symbol: CodeSymbol): void {
+    config.symbolBudget.consume();
+    symbols.push(symbol);
+  }
 
   function buildSymbol(
     declNode: Node,
@@ -118,12 +125,12 @@ export function walkSymbols(root: Node, config: WalkConfig): CodeSymbol[] {
           const rangeNode = matches.length === 1 ? child : declaration!;
           for (const { node: matchNode, rule } of matches) {
             const symbol = buildSymbol(matchNode, rangeNode, rule, parent);
-            symbols.push(symbol);
+            addSymbol(symbol);
             visit(matchNode, { kind: symbol.kind, name: symbol.name, range: symbol.range });
           }
         } else {
           const range = config.sourceIndex.toSourceRange(child);
-          symbols.push({
+          addSymbol({
             kind: config.wrapper.fallbackKind,
             nativeKind: child.type,
             name: null,
@@ -138,7 +145,7 @@ export function walkSymbols(root: Node, config: WalkConfig): CodeSymbol[] {
       const rule = findRule(config.rules, child.type);
       if (rule) {
         const symbol = buildSymbol(child, child, rule, parent);
-        symbols.push(symbol);
+        addSymbol(symbol);
         visit(child, { kind: symbol.kind, name: symbol.name, range: symbol.range });
         continue;
       }

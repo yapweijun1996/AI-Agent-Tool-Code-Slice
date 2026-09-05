@@ -1,6 +1,7 @@
 # CLI Contract
 
-Status: Planned V0.1 public contract.
+Status: Implemented for the current CLI; cross-platform verification for the
+latest hardening changes remains a release gate.
 
 Executable:
 
@@ -14,7 +15,8 @@ Package working name:
 agent-code-slice
 ```
 
-Names remain provisional until npm/GitHub availability is confirmed.
+The package is published as `agent-code-slice`; `code-slice` is its installed
+executable name.
 
 ## Commands
 
@@ -32,14 +34,23 @@ Returns supported operations, languages, extensions, parser engine, and schema v
 code-slice outline <file> [--json]
 ```
 
-Options planned:
+Options:
 
 ```text
 --kind <kind>
 --max-symbols <n>
 --language <id>
+--root <path>
+--max-bytes <n>
+--max-output-bytes <n>
 --json
 ```
+
+`--max-symbols` is a safe integer from `0` through `50,000`; the default
+outline result is limited to `10,000` entries and reports `OUTLINE_TRUNCATED`
+when more symbols were found. `--max-bytes` defaults to `5,000,000` and may
+not exceed `10,000,000`. `--max-output-bytes` defaults to `8 MiB` and may only
+narrow that ceiling. Invalid values fail closed with `INVALID_ARGUMENT`.
 
 ### symbol
 
@@ -67,17 +78,17 @@ Returns the minimal supported enclosing code unit.
 code-slice range <file> <start:end> [--expand] [--json]
 ```
 
-Without `--expand`, range behavior should remain explicitly defined before implementation. Recommended V0.1: return exact text plus recognized containers; with `--expand`, return the minimal common supported container.
+Without `--expand`, returns the exact requested text. With `--expand`, returns
+the minimal supported enclosing container.
 
 ## Global flags
-
-Planned:
 
 ```text
 --json
 --language <id>
 --root <path>
 --max-bytes <n>
+--max-output-bytes <n>
 --debug
 --version
 --help
@@ -102,9 +113,19 @@ Do not emit:
 
 to stdout.
 
+Core operation results use the v1.0 schema. CLI argument-shape failures (for
+example unknown flags, missing values, or extra positional arguments) use the
+additive v1.1 envelope with `operation: "cli"`; it has the same stable error
+object and an empty warnings array. This keeps malformed CLI requests JSON
+clean without changing the Core API's v1.0 operation envelopes.
+
+`--help` and `--version` are human-readable flags and cannot be combined with
+`--json`; the combination returns the v1.1 `INVALID_ARGUMENT` envelope so
+stdout remains JSON-clean.
+
 ## Exit codes
 
-Proposed:
+Current:
 
 | Exit | Meaning |
 |---:|---|
@@ -136,4 +157,5 @@ CLI commands must not format, rewrite, or modify source files.
 code-slice symbol app.py calculate_total --json
 code-slice symbol invoice.cfm qInvoice --kind query --json
 code-slice line src/service.ts 382 --json
+code-slice outline src/service.ts --max-symbols 500 --max-output-bytes 2000000 --json
 ```

@@ -1,6 +1,6 @@
 # ADR 0002: CLI-First Multi-Agent Integration
 
-Status: Superseded by ADR 0003 for future integration direction; CLI/JS API
+Status: Superseded by ADR 0004 for future integration direction; CLI/JS API
 decisions remain in force.
 
 ## Context

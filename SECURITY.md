@@ -2,7 +2,7 @@
 
 ## Current security model
 
-Agent Code Slice is planned as a local, read-only code observation tool.
+Agent Code Slice is a local, read-only code observation tool.
 
 The core product should not require:
 
@@ -23,7 +23,8 @@ Please report privately if you identify:
 - unsafe WASM/grammar packaging;
 - malicious source causing denial-of-service beyond documented limits;
 - JSON/output injection that can mislead an agent consumer;
-- MCP behavior that writes or executes when documented as read-only;
+- future serverless behavior that uploads, logs, writes, or executes beyond its
+  explicitly documented contract;
 - dependency/supply-chain integrity problems.
 
 ## Out of scope for V0.x

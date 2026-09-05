@@ -18,5 +18,13 @@ export interface ParseResult {
 
 export interface ParserEngine {
   loadLanguage(grammarId: string): Promise<LoadedLanguage>;
-  parse(source: string, language: LoadedLanguage): Promise<ParseResult>;
+  /**
+   * Parses a source string and keeps the native Tree-sitter tree scoped to the
+   * visitor. Implementations must release the tree after the visitor settles.
+   */
+  withParse<T>(
+    source: string,
+    language: LoadedLanguage,
+    visitor: (result: ParseResult) => Promise<T> | T,
+  ): Promise<T>;
 }

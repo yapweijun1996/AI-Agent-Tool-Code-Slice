@@ -2,7 +2,7 @@
 
 All notable changes should be documented here.
 
-The project follows semantic versioning once the first package is published.
+The project follows semantic versioning.
 
 ## [Unreleased]
 
@@ -11,6 +11,8 @@ The project follows semantic versioning once the first package is published.
 - Expanded the deterministic benchmark cohort to all current host adapters and
   the 5 KB, 50 KB, 500 KB, and 1 MB fixtures, with engine-phase, cold CLI,
   warm API, output-reduction, RSS, grammar-hash, and fixture-hash evidence.
+- Added an isolated warm benchmark worker so per-fixture RSS observations do
+  not retain large cold/warm envelopes or memory from earlier grammar cohorts.
 - Added the built-package agent-facing E2E workflow for CLI and JS API usage,
   including exact byte-range validation, fail-closed ambiguity/fallback,
   schema validation, stdout/stderr separation, and read-only workspace checks.
@@ -19,10 +21,24 @@ The project follows semantic versioning once the first package is published.
 
 ### Changed
 
+- Scoped Tree-sitter parser/tree ownership to `ParserEngine.withParse()` and
+  release the native tree on both successful and throwing extraction paths.
+- Added runtime request validation and bounded file, symbol, and serialized
+  output budgets. Invalid values fail closed with `INVALID_ARGUMENT`; valid
+  results that exceed the output budget return `OUTPUT_LIMIT_EXCEEDED`.
+- Made CLI flag and positional-argument parsing strict and added an additive
+  v1.1 JSON envelope for CLI usage errors, while keeping Core/API result
+  envelopes on schema v1.0.
+- Added runtime grammar-manifest validation and coalesced concurrent first
+  loads for the same WASM grammar.
 - Confirmed the product boundary: no MCP server or MCP/stdio adapter will be
   built. A future serverless integration, if selected, will be a separate
   stateless wrapper over Core with an explicit source-input and privacy
   contract.
+
+The changes in this section are implemented and locally verified in the
+current working tree. They are not a new cross-platform release claim until
+the CI matrix is rerun.
 
 ## [0.2.0] - 2026-09-05
 
@@ -128,7 +144,7 @@ grammars) is **Verified** for functional correctness per
 passes on Windows Server 2025, macOS 26.5.2, and Ubuntu 24.04.4, each on
 Node 20 and 22 — see
 [CI run 33885596301](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33885596301).
-Not covered by that evidence: performance (macOS-only benchmark). The
+At that point, performance evidence was limited to a macOS-only benchmark. The
 serverless adapter and agent-specific integration packs remain unimplemented,
 per `ROADMAP.md`; an MCP server is explicitly out of scope.
 

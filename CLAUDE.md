@@ -4,20 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-This repository currently contains **only a documentation/specification pack** for a product called
-**Agent Code Slice**. There is no `package.json`, no `src/`, no build tooling, and no test runner yet —
-implementation has not started (Phase 0 of `docs/IMPLEMENTATION_PLAN.md` is not done). Do not invent or
-assume build/lint/test commands; none exist. If asked to bootstrap the project, follow
-`docs/IMPLEMENTATION_PLAN.md` Phase 0 (package skeleton, TS/JS build choice, test runner, lint/format
-policy, CI matrix) rather than improvising a structure.
+This repository contains the implemented `agent-code-slice@0.2.0` package and
+its documentation/specification pack. The current working tree may contain
+unreleased hardening changes; verify with `npm test`, `npm run typecheck`,
+`npm run build`, and the relevant grammar/Golden/E2E commands before making a
+release claim.
 
 Existing top-level content:
 
 - `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `SECURITY.md`, `CHANGELOG.md` — project docs.
 - `docs/` — the full contract/spec set (see Documentation map below).
-- `schemas/code-slice-result-v1.schema.json` — the planned JSON output schema.
+- `schemas/code-slice-result-v1.schema.json` and
+  `schemas/code-slice-result-v1.1.schema.json` — the Core and CLI JSON schemas.
 - `examples/*.json` — example success/error/CFML output envelopes.
-- `DOCUMENTATION_INDEX.md` / `MANIFEST.json` — index and file manifest for this doc pack.
+- `DOCUMENTATION_INDEX.md` — index for the current repository documentation.
 
 ## What the product is
 
@@ -27,7 +27,7 @@ making the agent read an entire source file. It is explicitly **not** a code sea
 RAG system, formatter, linter, or autonomous coding agent — see "Non-goals V0.1" in
 `docs/PRODUCT_SPEC.md`.
 
-Planned pipeline (see README):
+Current pipeline (see README):
 
 ```
 Large source file → language detection → Tree-sitter WASM parser → language adapter
@@ -52,14 +52,16 @@ Five layers, each with a hard boundary — **read this file before touching engi
    selector is `symbol` (by name, with optional `kind`/`occurrence` disambiguator), `line`, or `range`
    (with optional `expand`). `occurrence` is an explicit disambiguator only — never used to silently hide
    ambiguity.
-5. **Delivery adapters** — CLI (lowest-common layer), JS API, optional local stdio MCP, and
-   agent-specific packs (Skills/Extensions/custom tools). **All of these must call the same Core API and
-   must never duplicate parsing logic.**
+5. **Delivery adapters** — CLI (lowest-common layer), JS API, optional future
+   serverless wrapper, and agent-specific packs (Skills/Extensions/custom
+   tools). **All of these must call the same Core API and must never duplicate
+   parsing logic.** There is no MCP server or MCP/stdio adapter in the product
+   direction.
 
-The expected module layout (from `AGENTS.md`, not yet created):
+The module layout (from `AGENTS.md`):
 
 ```
-src/core/  src/engine/  src/languages/  src/schema/  src/cli/  src/mcp/  integrations/  grammars/  test/
+src/core/  src/engine/  src/languages/  src/schema/  src/cli/  src/serverless/ (future)  integrations/  grammars/  test/
 ```
 
 ### Rules that apply to any future implementation
@@ -88,18 +90,20 @@ These come from `AGENTS.md` and are the actual constraints on this project, not 
   Working package name `agent-code-slice`, executable `code-slice`. Exit codes 0–8 map to coarse
   classes (arg error, file/root error, unsupported/ambiguous language, parse error, not found,
   ambiguous, output limit, internal failure); the JSON `error.code` is the primary machine semantic.
-- **JSON schema** — `docs/JSON_SCHEMA.md` + `schemas/code-slice-result-v1.schema.json`. Versioned
-  envelope (`schemaVersion`, `ok`, `operation`, `file`, `result`/`error`, `warnings`, `meta`). Lines and
-  columns are 1-based; byte offsets are 0-based UTF-8. Stable error codes are enumerated in that file
-  (`FILE_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_AMBIGUOUS`, etc.) — reuse them rather than inventing
-  new ones.
+- **JSON schema** — `docs/JSON_SCHEMA.md` + the v1.0 Core schema and additive
+  v1.1 CLI-usage schema. Versioned envelope (`schemaVersion`, `ok`,
+  `operation`, `file`, `result`/`error`, `warnings`, `meta`). Lines and columns
+  are 1-based; byte offsets are 0-based UTF-8. Stable error codes are
+  enumerated in that file (`INVALID_ARGUMENT`, `FILE_NOT_FOUND`,
+  `SYMBOL_AMBIGUOUS`, `LANGUAGE_AMBIGUOUS`, etc.) — reuse them rather than
+  inventing new ones.
 - **Language adapter contract** — `docs/LANGUAGE_ADAPTER_CONTRACT.md`. A language isn't "supported" just
   because a grammar can parse a file; an adapter must define+test extension detection, grammar loading,
   symbol/kind mapping, naming rules, container resolution, line/range expansion, ambiguity behavior,
   malformed-source behavior, and golden fixtures.
-- **MCP** — `docs/MCP_INTEGRATION.md`. Planned local stdio server exposing exactly three read-only tools:
-  `code_slice_capabilities`, `code_slice_outline`, `code_slice_get`. Must call the same Core API as the
-  CLI. Deferred to V0.2.
+- **Serverless** — `docs/SERVERLESS_INTEGRATION.md`. Planned stateless
+  wrapper over Core with an explicit source-input, authentication, privacy,
+  size, timeout, and logging contract. MCP/stdio is explicitly out of scope.
 
 ## Documentation map
 
@@ -116,7 +120,8 @@ Rust, PHP, C/C++, HTML/CSS).
 release-verified) → `Verified` (acceptance evidence exists for a named environment/version). Also
 `Experimental` for things outside the stable contract. **Never upgrade a status without stored evidence**
 (per `AGENTS.md` "Public-claim discipline"), and never claim "supports all AI agents" — the approved
-phrase is "Works with AI coding agents that can use shell commands, JavaScript, or MCP."
+phrase is "Works with AI coding agents that can use shell commands or JavaScript. A future serverless
+adapter is a separate planned integration."
 
 ## Testing discipline (once implementation exists)
 

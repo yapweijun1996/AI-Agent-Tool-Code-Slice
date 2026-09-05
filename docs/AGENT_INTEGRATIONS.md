@@ -58,7 +58,8 @@ Recommended Skill behavior:
 - fall back to normal reads if unsupported/ambiguous;
 - never treat Code Slice output as proof of runtime behavior.
 
-Status at documentation creation: **Planned**, not verified.
+Package CLI path: **Implemented**. Codex-version-specific live compatibility:
+**Planned**, not verified.
 
 ## Claude Code
 
@@ -68,7 +69,8 @@ Enhanced: future serverless wrapper or direct JS API, once implemented.
 
 Keep permission requirements read-only where platform capabilities permit.
 
-Status: Planned.
+Package CLI path: **Implemented**. Claude-version-specific live compatibility:
+**Planned**, not verified.
 
 ## Gemini CLI
 
@@ -79,7 +81,8 @@ Enhanced:
 - serverless wrapper, once implemented;
 - Gemini CLI Extension packaging instructions if still needed.
 
-Status: Planned.
+Package CLI path: **Implemented**. Gemini-version-specific live compatibility:
+**Planned**, not verified.
 
 ## OpenCode
 
@@ -90,7 +93,8 @@ Enhanced options:
 - serverless wrapper, once implemented;
 - thin custom tool wrapper importing Core.
 
-Status: Planned.
+Package CLI path: **Implemented**. OpenCode-version-specific live compatibility:
+**Planned**, not verified.
 
 ## AGRUN
 
@@ -98,7 +102,8 @@ Preferred: JS API Host Tool.
 
 AGRUN integration should call Core directly and return bounded JSON.
 
-Status: Planned.
+Package JS API path: **Implemented**. AGRUN host integration: **Planned**, not
+verified.
 
 ## VM-MCP
 
@@ -106,7 +111,8 @@ Preferred: execute installed CLI inside the authorized VM workspace.
 
 Do not expand VM-MCP permissions simply to support Code Slice.
 
-Status: Planned.
+Package CLI path: **Implemented**. VM-MCP host integration: **Planned**, not
+verified.
 
 ## Unknown future agents
 

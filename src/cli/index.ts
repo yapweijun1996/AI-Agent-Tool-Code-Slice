@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { capabilities, outline, slice } from "../core/index.js";
 import type { ResultEnvelope, SymbolKind, Selector } from "../core/index.js";
+import { buildCliErrorEnvelope, type CliErrorEnvelope } from "../schema/envelope.js";
+import { CodeSliceError } from "../schema/errors.js";
 import type { ErrorCode } from "../schema/errors.js";
 import { SYMBOL_KINDS } from "../schema/types.js";
 
@@ -14,6 +16,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
  * machine semantic; these are the stable coarse classes.
  */
 const EXIT_CODE_BY_ERROR: Partial<Record<ErrorCode, number>> = {
+  INVALID_ARGUMENT: 2,
   FILE_NOT_FOUND: 3,
   FILE_OUTSIDE_ROOT: 3,
   FILE_TOO_LARGE: 3,
@@ -38,6 +41,23 @@ interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
+const BOOLEAN_FLAGS = new Set(["json", "expand", "debug", "version", "help"]);
+const VALUE_FLAGS = new Set(["kind", "max-symbols", "max-output-bytes", "language", "root", "max-bytes"]);
+const ALLOWED_FLAGS_BY_COMMAND: Record<string, ReadonlySet<string>> = {
+  capabilities: new Set(["json", "debug"]),
+  outline: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "kind", "max-symbols"]),
+  symbol: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "kind"]),
+  line: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes"]),
+  range: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "expand"]),
+};
+const POSITIONAL_COUNTS: Record<string, number> = {
+  capabilities: 0,
+  outline: 1,
+  symbol: 2,
+  line: 2,
+  range: 2,
+};
+
 function parseArgs(argv: string[]): ParsedArgs {
   const positional: string[] = [];
   const flags: Record<string, string | boolean> = {};
@@ -47,15 +67,17 @@ function parseArgs(argv: string[]): ParsedArgs {
     const arg = argv[i]!;
     if (arg.startsWith("--")) {
       const name = arg.slice(2);
-      const booleanFlags = new Set(["json", "expand", "debug", "version", "help"]);
-      if (booleanFlags.has(name)) {
+      if (BOOLEAN_FLAGS.has(name)) {
         flags[name] = true;
-      } else {
-        const value = argv[++i];
-        if (value === undefined) {
+      } else if (VALUE_FLAGS.has(name)) {
+        const value = argv[i + 1];
+        if (value === undefined || value.startsWith("--")) {
           throw new CliUsageError(`Flag --${name} requires a value`);
         }
+        i += 1;
         flags[name] = value;
+      } else {
+        throw new CliUsageError(`Unknown flag --${name}`);
       }
       continue;
     }
@@ -70,6 +92,25 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 class CliUsageError extends Error {}
+
+function validateCommandArgs(parsed: ParsedArgs): void {
+  if (!parsed.command) throw new CliUsageError("A command is required");
+  const allowed = ALLOWED_FLAGS_BY_COMMAND[parsed.command];
+  const positionalCount = POSITIONAL_COUNTS[parsed.command];
+  if (!allowed || positionalCount === undefined) {
+    throw new CliUsageError(`Unknown command "${parsed.command}"`);
+  }
+
+  for (const flag of Object.keys(parsed.flags)) {
+    if (flag === "help" || flag === "version") continue;
+    if (!allowed.has(flag)) throw new CliUsageError(`Flag --${flag} is not valid for ${parsed.command}`);
+  }
+  if (parsed.positional.length !== positionalCount) {
+    throw new CliUsageError(
+      `${parsed.command} expects ${positionalCount} positional argument(s), got ${parsed.positional.length}`,
+    );
+  }
+}
 
 function readVersion(): string {
   const pkg = JSON.parse(readFileSync(path.join(packageRoot, "package.json"), "utf8")) as { version: string };
@@ -90,12 +131,16 @@ Global flags:
   --language <id>   Force a language adapter instead of detecting from extension.
   --root <path>     Constrain readable paths to this root.
   --max-bytes <n>   Reject files larger than <n> bytes.
+  --max-output-bytes <n>
+                    Reject serialized results larger than <n> bytes.
   --debug           Reserved; currently a no-op.
   --version         Print the package version and exit.
   --help            Print this help and exit.
 `;
 
-function printEnvelope(envelope: ResultEnvelope, json: boolean): void {
+type DeliveryEnvelope = ResultEnvelope | CliErrorEnvelope;
+
+function printEnvelope(envelope: DeliveryEnvelope, json: boolean): void {
   if (json) {
     process.stdout.write(JSON.stringify(envelope) + "\n");
     return;
@@ -113,7 +158,7 @@ function printEnvelope(envelope: ResultEnvelope, json: boolean): void {
   }
 }
 
-function exitCodeFor(envelope: ResultEnvelope): number {
+function exitCodeFor(envelope: DeliveryEnvelope): number {
   if (envelope.ok) return 0;
   const code = envelope.error.code as ErrorCode;
   return EXIT_CODE_BY_ERROR[code] ?? 1;
@@ -143,32 +188,58 @@ function parseIntArg(name: string, value: string): number {
   return n;
 }
 
+function printCliUsageError(error: CliUsageError | CodeSliceError, json: boolean): void {
+  const codeError =
+    error instanceof CodeSliceError ? error : new CodeSliceError("INVALID_ARGUMENT", error.message);
+  const envelope = buildCliErrorEnvelope(codeError);
+  if (json) {
+    process.stdout.write(JSON.stringify(envelope) + "\n");
+    return;
+  }
+  process.stderr.write(`error: ${codeError.code}: ${codeError.message}\n`);
+}
+
 async function run(): Promise<number> {
   const argv = process.argv.slice(2);
+  const jsonRequested = argv.includes("--json");
   let parsed: ParsedArgs;
   try {
     parsed = parseArgs(argv);
   } catch (err) {
-    process.stderr.write(`error: ${(err as Error).message}\n`);
+    printCliUsageError(new CliUsageError((err as Error).message), jsonRequested);
     return EXIT_ARGS_INVALID;
   }
 
   const json = Boolean(parsed.flags.json);
+
+  if (json && (parsed.flags.version || parsed.flags.help)) {
+    printCliUsageError(new CliUsageError("--help and --version cannot be combined with --json"), true);
+    return EXIT_ARGS_INVALID;
+  }
 
   if (parsed.flags.version) {
     process.stdout.write(readVersion() + "\n");
     return 0;
   }
   if (parsed.flags.help || parsed.command === undefined) {
+    if (parsed.command === undefined && json) {
+      printCliUsageError(new CliUsageError("A command is required"), true);
+      return EXIT_ARGS_INVALID;
+    }
     process.stdout.write(HELP_TEXT);
     return parsed.command === undefined ? EXIT_ARGS_INVALID : 0;
   }
 
   try {
+    validateCommandArgs(parsed);
     const root = typeof parsed.flags.root === "string" ? parsed.flags.root : undefined;
     const language = typeof parsed.flags.language === "string" ? parsed.flags.language : undefined;
     const maxBytes =
       typeof parsed.flags["max-bytes"] === "string" ? parseIntArg("max-bytes", parsed.flags["max-bytes"]) : undefined;
+    const maxOutputBytes =
+      typeof parsed.flags["max-output-bytes"] === "string"
+        ? parseIntArg("max-output-bytes", parsed.flags["max-output-bytes"])
+        : undefined;
     const kind = parseKindArg(parsed.flags.kind);
 
     switch (parsed.command) {
@@ -182,7 +253,7 @@ async function run(): Promise<number> {
         if (!file) throw new CliUsageError("outline requires <file>");
         const maxSymbols =
           typeof parsed.flags["max-symbols"] === "string" ? parseIntArg("max-symbols", parsed.flags["max-symbols"]) : undefined;
-        const envelope = await outline({ file, root, language, maxBytes, kind, maxSymbols });
+        const envelope = await outline({ file, root, language, maxBytes, maxOutputBytes, kind, maxSymbols });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -190,7 +261,7 @@ async function run(): Promise<number> {
         const [file, name] = parsed.positional;
         if (!file || !name) throw new CliUsageError("symbol requires <file> <name>");
         const selector: Selector = { type: "symbol", name, ...(kind ? { kind } : {}) };
-        const envelope = await slice({ file, root, language, maxBytes, selector });
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -198,7 +269,7 @@ async function run(): Promise<number> {
         const [file, lineStr] = parsed.positional;
         if (!file || !lineStr) throw new CliUsageError("line requires <file> <line>");
         const selector: Selector = { type: "line", line: parseIntArg("line", lineStr) };
-        const envelope = await slice({ file, root, language, maxBytes, selector });
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -207,20 +278,20 @@ async function run(): Promise<number> {
         if (!file || !rangeStr) throw new CliUsageError("range requires <file> <start:end>");
         const { startLine, endLine } = parseRange(rangeStr);
         const selector: Selector = { type: "range", startLine, endLine, expand: Boolean(parsed.flags.expand) };
-        const envelope = await slice({ file, root, language, maxBytes, selector });
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
       default:
-        process.stderr.write(`error: unknown command "${parsed.command}"\n\n${HELP_TEXT}`);
-        return EXIT_ARGS_INVALID;
+        throw new CliUsageError(`Unknown command "${parsed.command}"`);
     }
   } catch (err) {
     if (err instanceof CliUsageError) {
-      process.stderr.write(`error: ${err.message}\n`);
+      printCliUsageError(err, json);
       return EXIT_ARGS_INVALID;
     }
-    process.stderr.write(`error: ${err instanceof Error ? err.message : String(err)}\n`);
+    const unexpected = new CodeSliceError("INTERNAL_ERROR", err instanceof Error ? err.message : String(err));
+    printCliUsageError(unexpected, json);
     return 1;
   }
 }

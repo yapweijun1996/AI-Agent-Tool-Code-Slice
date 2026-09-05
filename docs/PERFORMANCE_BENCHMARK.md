@@ -1,11 +1,13 @@
 # Performance Benchmark
 
 Status: the reproducible benchmark runner is implemented. The checked-in
-report is a local macOS evidence set; CI run
+report is a local macOS evidence set; the earlier CI run
 [33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
 passed the same cohort on Ubuntu, Windows, and macOS with Node 20 and uploaded
-one artifact per job. Do not treat the local report or a single CI artifact as
-a universal latency promise. Regenerate via:
+one artifact per job. The current report's warm API repetitions run in one
+isolated worker per target, so its RSS rows are not accumulated across grammar
+cohorts. Do not treat the local report or a single CI artifact as a universal
+latency/memory promise. Regenerate via:
 
 ```bash
 npm run benchmark:fixtures && npm run build && npm run --silent benchmark
@@ -89,9 +91,13 @@ Benchmark output should record:
 
 Cold samples run through `test/benchmark/cold-worker.mjs`. Each worker starts a
 fresh CLI process for every repetition, while keeping the long-lived report
-process from accumulating WASM child-process teardown state. On Node 23 and
-later the benchmark adds the recorded `--no-maglev` runtime flag because the
-current macOS 26 host can otherwise leave repeated WASM CLI children in V8's
-background compilation queue. This is a benchmark-harness safeguard for that
-runtime, not a product runtime flag; supported CI Node 20 jobs use no extra
-flag.
+process from accumulating WASM child-process teardown state. Warm samples run
+through `test/benchmark/warm-worker.mjs`: one worker per target performs the
+untimed grammar prime and all same-process API repetitions, then reports its
+post-operation RSS after explicit GC passes between operations. The benchmark
+launches that worker with `--expose-gc` for a comparable steady-state sample;
+this flag is not used by the product runtime. On Node 23 and later the benchmark adds the recorded
+`--no-maglev` runtime flag because the current macOS 26 host can otherwise
+leave repeated WASM CLI children in V8's background compilation queue. This is
+a benchmark-harness safeguard for that runtime, not a product runtime flag;
+supported CI Node 20 jobs use no extra flag.

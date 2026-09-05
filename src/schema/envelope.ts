@@ -37,6 +37,20 @@ export interface ErrorEnvelope {
 
 export type ResultEnvelope<TResult = unknown> = SuccessEnvelope<TResult> | ErrorEnvelope;
 
+/** Delivery-level CLI validation errors use a separate additive schema version. */
+export interface CliErrorEnvelope {
+  schemaVersion: "1.1";
+  ok: false;
+  operation: "cli";
+  error: {
+    code: string;
+    message: string;
+    recoverable: boolean;
+    candidates?: unknown[];
+  };
+  warnings: Diagnostic[];
+}
+
 export function buildSuccessEnvelope<TResult>(params: {
   operation: Operation;
   file?: string;
@@ -80,4 +94,19 @@ export function buildErrorEnvelope(params: {
   if (params.file !== undefined) envelope.file = params.file;
   if (params.language !== undefined) envelope.language = params.language;
   return envelope;
+}
+
+export function buildCliErrorEnvelope(error: CodeSliceError): CliErrorEnvelope {
+  return {
+    schemaVersion: "1.1",
+    ok: false,
+    operation: "cli",
+    error: {
+      code: error.code,
+      message: error.message,
+      recoverable: error.recoverable,
+      ...(error.candidates !== undefined ? { candidates: error.candidates } : {}),
+    },
+    warnings: [],
+  };
 }

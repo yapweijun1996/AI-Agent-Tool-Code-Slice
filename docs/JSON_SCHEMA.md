@@ -1,6 +1,8 @@
 # JSON Schema Contract
 
-Status: Planned V0.1.
+Status: Implemented: Core envelopes use v1.0; CLI usage errors use additive
+v1.1. Cross-platform verification for the latest hardening changes remains a
+release gate.
 
 Canonical machine output is versioned independently from package internals.
 
@@ -8,6 +10,7 @@ Schema:
 
 ```text
 schemas/code-slice-result-v1.schema.json
+schemas/code-slice-result-v1.1.schema.json
 ```
 
 ## Success envelope
@@ -71,9 +74,10 @@ schemas/code-slice-result-v1.schema.json
 
 ## Error codes
 
-Stable V0.1 target:
+Current stable codes:
 
 - `FILE_NOT_FOUND`
+- `INVALID_ARGUMENT`
 - `FILE_OUTSIDE_ROOT`
 - `FILE_TOO_LARGE`
 - `ENCODING_UNSUPPORTED`
@@ -96,7 +100,8 @@ Recommended public convention:
 - columns are 1-based;
 - byte offsets are 0-based UTF-8 byte offsets.
 
-This convention must be frozen in tests before package publication.
+This convention is frozen and covered by unit, Golden Eval, and agent-facing
+contract tests.
 
 ## Diagnostics
 
@@ -114,3 +119,10 @@ Warnings must not silently convert a failed selector into a guessed success.
 Adding optional fields is backward-compatible only when consumers can safely ignore them.
 
 Renaming/removing fields or changing index conventions requires a schema-version decision.
+
+CLI usage errors are the only current v1.1 delivery envelope. They use
+`schemaVersion: "1.1"`, `operation: "cli"`, `ok: false`, and the same stable
+error shape as v1.0. Core/API validation errors remain v1.0 envelopes with
+their operation (`outline` or `slice`). Consumers that invoke the CLI should
+accept both schema versions and branch on `operation` before reading the
+operation-specific result payload.

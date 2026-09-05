@@ -13,6 +13,7 @@ export const javascriptAdapter: LanguageAdapter = {
       sourceIndex: ctx.sourceIndex,
       source: ctx.source,
       wrapper: jsFamilyWrapper,
+      symbolBudget: ctx.symbolBudget,
     });
   },
 };

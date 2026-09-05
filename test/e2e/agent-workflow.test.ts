@@ -27,6 +27,10 @@ const schema = JSON.parse(
   readFileSync(path.join(repoRoot, "schemas", "code-slice-result-v1.schema.json"), "utf8"),
 ) as object;
 const validateEnvelope = new Ajv2020({ strict: false }).compile(schema);
+const cliSchema = JSON.parse(
+  readFileSync(path.join(repoRoot, "schemas", "code-slice-result-v1.1.schema.json"), "utf8"),
+) as object;
+const validateCliEnvelope = new Ajv2020({ strict: false }).compile(cliSchema);
 
 interface JsonRecord {
   [key: string]: unknown;
@@ -120,6 +124,19 @@ function parseJsonEnvelope(run: CliResult, label: string): JsonRecord {
   return envelope;
 }
 
+function parseCliErrorEnvelope(run: CliResult, label: string): JsonRecord {
+  assert.equal(run.stderr, "", `${label} wrote diagnostics to stderr`);
+  assert.ok(run.stdout.endsWith("\n"), `${label} did not end with a JSON newline`);
+  const document = run.stdout.slice(0, -1);
+  const envelope = record(JSON.parse(document) as unknown, `${label} JSON`);
+  assert.equal(
+    validateCliEnvelope(envelope),
+    true,
+    `${label} violated the v1.1 CLI JSON schema: ${JSON.stringify(validateCliEnvelope.errors)}`,
+  );
+  return envelope;
+}
+
 function successResult(envelope: JsonRecord, label: string): JsonRecord {
   assert.equal(envelope.ok, true, `${label} returned ${JSON.stringify(envelope.error)}`);
   return record(envelope.result, `${label}.result`);
@@ -204,4 +221,29 @@ test("agent-facing JS API workflow uses the built public entry point and stays r
   assert.equal(symbolResult.kind, "function");
   assert.match(String(symbolResult.code), /^export function calculateTotal/);
   assert.equal(snapshotWorkspace(root), before, "JS API workflow modified the authorized workspace");
+});
+
+test("agent-facing CLI rejects malformed arguments with JSON-clean, machine-readable errors", (testContext) => {
+  const root = createWorkspace(testContext, [
+    { source: "test/fixtures/javascript/basic.js", destination: "src/basic.js" },
+  ]);
+
+  const unknownFlag = runCli(root, ["outline", "src/basic.js", "--unknown-flag", "--json"]);
+  assert.equal(unknownFlag.status, 2);
+  const unknownEnvelope = parseCliErrorEnvelope(unknownFlag, "unknown flag");
+  assert.equal(record(unknownEnvelope.error, "unknown flag.error").code, "INVALID_ARGUMENT");
+
+  const extraArgument = runCli(root, ["line", "src/basic.js", "1", "extra", "--json"]);
+  assert.equal(extraArgument.status, 2);
+  const extraEnvelope = parseCliErrorEnvelope(extraArgument, "extra argument");
+  assert.equal(record(extraEnvelope.error, "extra argument.error").code, "INVALID_ARGUMENT");
+
+  const invalidLimit = runCli(root, ["outline", "src/basic.js", "--max-symbols", "-1", "--json"]);
+  assert.equal(invalidLimit.status, 2);
+  const invalidLimitEnvelope = parseJsonEnvelope(invalidLimit, "invalid limit");
+  assert.equal(record(invalidLimitEnvelope.error, "invalid limit.error").code, "INVALID_ARGUMENT");
+
+  const helpJson = runCli(root, ["--help", "--json"]);
+  assert.equal(helpJson.status, 2);
+  assert.equal(record(parseCliErrorEnvelope(helpJson, "help with json").error, "help with json.error").code, "INVALID_ARGUMENT");
 });

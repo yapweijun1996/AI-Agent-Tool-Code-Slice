@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { capabilities, outline, slice } from "../../src/core/index.js";
+import { buildCliErrorEnvelope } from "../../src/schema/envelope.js";
+import { CodeSliceError } from "../../src/schema/errors.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
@@ -17,6 +19,10 @@ const schema = JSON.parse(
 // entry point does.
 const ajv = new Ajv2020({ strict: false });
 const validate = ajv.compile(schema);
+const cliSchema = JSON.parse(
+  readFileSync(path.join(repoRoot, "schemas", "code-slice-result-v1.1.schema.json"), "utf8"),
+);
+const validateCli = ajv.compile(cliSchema);
 
 function assertValidEnvelope(envelope: unknown, label: string): void {
   const valid = validate(envelope);
@@ -63,4 +69,9 @@ test("the checked-in example fixtures all validate against the v1 schema", () =>
     const example = JSON.parse(readFileSync(path.join(repoRoot, "examples", name), "utf8"));
     assertValidEnvelope(example, `examples/${name}`);
   }
+});
+
+test("CLI usage error envelope validates against the additive v1.1 schema", () => {
+  const envelope = buildCliErrorEnvelope(new CodeSliceError("INVALID_ARGUMENT", "Unknown flag --typo"));
+  assert.equal(validateCli(envelope), true, ajv.errorsText(validateCli.errors));
 });

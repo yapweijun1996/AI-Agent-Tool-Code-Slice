@@ -10,9 +10,10 @@ Status values:
 Rows below reflect the current implementation. "Verified" here means the
 language certification and regression suite passes on a named CI matrix (see
 "Certification evidence" below) — it certifies functional correctness
-(parsing, symbol resolution, ambiguity, malformed-source handling), not
-performance beyond the current macOS benchmark (see `README.md`'s status
-banner for what's still outstanding).
+(parsing, symbol resolution, ambiguity, malformed-source handling), not a
+universal performance promise. A previous Node 20 CI run covers benchmark
+execution on all three OS families; the latest lifecycle/budget changes still
+need a new cross-platform run (see `README.md`'s status banner).
 
 | Language | Extensions | V0.1 target | Mixed-language role | Status |
 |---|---|---:|---|---|
@@ -73,10 +74,9 @@ Certification evidence should include:
   plus CFML's CFScript/CFQuery embedding — see `CHANGELOG.md` for what each
   test asserts. The declarative Golden Eval regression tests are additional
   evidence and are described in `docs/TESTING_GOLDEN_EVAL.md`.
-- **Known limitations:** see below. This certification does not cover
-  performance beyond the macOS-only benchmark in
-  `docs/PERFORMANCE_BENCHMARK_RESULTS.md`. The separate `0.2.0` release CI
-  smoke covers public-registry installation on all three listed platforms and
+- **Known limitations:** see below. This certification does not make a
+  universal latency or memory promise. The separate `0.2.0` release CI smoke
+  covers public-registry installation on all three listed platforms and
   verifies CFML embedding, not agent-specific integrations.
 
 Additional declarative Golden Eval evidence: CI run
@@ -117,7 +117,9 @@ unmotivated later.
 - Functional correctness (the test suite) is CI-verified on Windows/macOS/
   Linux — see "Certification evidence" above. The `0.2.0` release CI also
   verified real public-registry installation on all three listed platforms with
-  Node 20. Performance remains limited to the macOS-only benchmark.
+  Node 20. Benchmark execution has prior Node 20 cross-platform evidence, but
+  benchmark numbers are environment-specific and the latest hardening rerun is
+  currently local.
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.

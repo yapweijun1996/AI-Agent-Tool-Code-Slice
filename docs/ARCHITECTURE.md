@@ -40,7 +40,7 @@ Agent Code Slice separates:
 
 ## Layer 1 — Parser engine
 
-Planned default:
+Current default:
 
 - `web-tree-sitter`;
 - pinned WASM grammars;
@@ -53,12 +53,19 @@ Interface concept:
 
 ```ts
 interface ParserEngine {
-  loadLanguage(grammar: GrammarDescriptor): Promise<LoadedLanguage>;
-  parse(source: string, language: LoadedLanguage): Promise<ParseResult>;
+  loadLanguage(grammarId: string): Promise<LoadedLanguage>;
+  withParse<T>(
+    source: string,
+    language: LoadedLanguage,
+    visitor: (result: ParseResult) => Promise<T> | T,
+  ): Promise<T>;
 }
 ```
 
-Future native engines must implement the same contract.
+`withParse` deliberately scopes the native Tree-sitter `Tree` to the visitor.
+The engine releases the tree and parser after the visitor settles, including
+when extraction throws. Future native engines must implement the same scoped
+contract and produce the same normalized IR.
 
 ## Layer 2 — Language adapters
 
@@ -164,6 +171,19 @@ A slicing request should identify:
 
 Security requirements belong to the loader boundary, not the grammar.
 
+## Resource and output budgets
+
+Core validates runtime requests before parsing. The default file budget is
+5,000,000 bytes and callers may lower it but may not raise it above the
+10,000,000-byte hard ceiling. Outline extraction has a bounded symbol budget;
+the default returned outline limit is 10,000 symbols and the extraction safety
+ceiling is 50,000 symbols. Success envelopes are checked against the default
+8 MiB serialized-output limit, which callers may lower but may not raise.
+
+Limits fail closed with `INVALID_ARGUMENT` for malformed values and
+`OUTPUT_LIMIT_EXCEEDED` when a valid operation cannot fit the requested output
+budget. A symbol slice is never silently truncated.
+
 ## Mixed-language model
 
 Mixed-language files should be represented as nested language regions rather than flattened guesses.
@@ -191,10 +211,12 @@ The output keeps both host and embedded language.
 Allowed future caches:
 
 - loaded WASM grammars;
-- parsed syntax tree for unchanged `(path, content hash)` during one process;
 - normalized symbol inventory.
 
-Do not persist source-code caches by default without an explicit privacy decision.
+The current engine caches loaded grammars for the process lifetime and
+coalesces concurrent first loads for the same grammar. Parsed trees are
+request-scoped and are not cached. Do not persist source-code caches by default
+without an explicit privacy decision.
 
 ## Network
 

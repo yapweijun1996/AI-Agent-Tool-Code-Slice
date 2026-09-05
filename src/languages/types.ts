@@ -3,6 +3,11 @@ import type { SourceIndex } from "../schema/coordinates.js";
 import type { CodeSymbol } from "../schema/types.js";
 import type { ParserEngine } from "../engine/parser-engine.js";
 
+export interface SymbolBudget {
+  readonly maxSymbols: number;
+  consume(amount?: number): void;
+}
+
 export interface AdapterContext {
   tree: Tree;
   source: string;
@@ -10,6 +15,8 @@ export interface AdapterContext {
   filePath: string;
   /** For adapters that parse embedded regions with a different grammar (e.g. CFML -> cfscript/cfquery/javascript/css). */
   engine: ParserEngine;
+  /** Shared extraction safety budget; adapters must consume before materializing symbols. */
+  symbolBudget: SymbolBudget;
 }
 
 /**

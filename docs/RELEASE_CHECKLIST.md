@@ -31,6 +31,8 @@ Use for every package release.
 - [ ] JSON schema tests passed.
 - [ ] JS public API tests passed.
 - [ ] Error-code compatibility reviewed.
+- [ ] Runtime input validation and limit behavior reviewed.
+- [ ] Native parser/tree lifecycle tests passed.
 - [ ] Serverless contract tested if included in this release.
 
 ## Security/privacy
@@ -48,6 +50,8 @@ Use for every package release.
 - [ ] Malformed fixtures passed.
 - [ ] Ambiguity fixtures passed.
 - [ ] Agent-facing contract E2E passed (`npm run test:e2e`).
+- [ ] CLI malformed-argument JSON envelopes passed (`schemaVersion: 1.1`).
+- [ ] Output-budget and no-silent-truncation tests passed.
 - [ ] Cross-platform benchmark artifacts reviewed for the release commit.
 - [ ] Benchmark rerun if parser/grammar changed.
 

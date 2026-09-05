@@ -1,8 +1,9 @@
 import { existsSync, realpathSync, statSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { CodeSliceError } from "../schema/errors.js";
+import { DEFAULT_MAX_BYTES, normalizeMaxBytes } from "./limits.js";
 
-export const DEFAULT_MAX_BYTES = 5_000_000;
+export { DEFAULT_MAX_BYTES } from "./limits.js";
 
 export interface LoadFileOptions {
   /** Constrains readable paths (docs/CLI_CONTRACT.md `--root`). Resolved+realpath'd to block symlink escapes. */
@@ -28,7 +29,13 @@ function escapesRoot(root: string, candidate: string): boolean {
 }
 
 export function loadFile(requestedPath: string, options: LoadFileOptions = {}): LoadedFile {
-  const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
+  if (typeof requestedPath !== "string" || requestedPath.length === 0) {
+    throw new CodeSliceError("INVALID_ARGUMENT", "file must be a non-empty string");
+  }
+  if (options.root !== undefined && (typeof options.root !== "string" || options.root.length === 0)) {
+    throw new CodeSliceError("INVALID_ARGUMENT", "root must be a non-empty string");
+  }
+  const maxBytes = normalizeMaxBytes(options.maxBytes);
   const cwd = process.cwd();
   const absolutePath = path.isAbsolute(requestedPath) ? requestedPath : path.resolve(cwd, requestedPath);
 
@@ -60,7 +67,15 @@ export function loadFile(requestedPath: string, options: LoadFileOptions = {}): 
   // Re-check after realpath: a symlink that lexically sat inside root can
   // still resolve to a target outside it.
   if (lexicalRoot !== undefined) {
-    const realRoot = realpathSync(lexicalRoot);
+    let realRoot: string;
+    try {
+      realRoot = realpathSync(lexicalRoot);
+    } catch (err) {
+      throw new CodeSliceError(
+        "FILE_NOT_FOUND",
+        `Could not resolve root "${options.root}": ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
     if (escapesRoot(realRoot, realPath)) {
       throw new CodeSliceError("FILE_OUTSIDE_ROOT", `File "${requestedPath}" resolves outside root "${options.root}"`);
     }

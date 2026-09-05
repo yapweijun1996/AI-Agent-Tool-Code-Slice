@@ -22,7 +22,7 @@ Useful contributions include:
 - malformed-source fixtures;
 - cross-platform packaging;
 - performance measurements;
-- CLI/MCP contract tests;
+- CLI/JS API contract tests;
 - verified agent integration documentation.
 
 ## Adding a language
@@ -67,7 +67,7 @@ Changes to any of the following require explicit review and a versioning decisio
 - normalized symbol kinds;
 - error codes;
 - JS public API;
-- MCP tool names or input/output contracts.
+- serverless adapter contracts or agent-specific tool contracts.
 
 ## Generated artifacts
 
