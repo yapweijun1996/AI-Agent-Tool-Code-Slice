@@ -1,8 +1,8 @@
 # JSON Schema Contract
 
 Status: Implemented: Core envelopes use v1.0; CLI usage errors use additive
-v1.1. Cross-platform verification for the latest hardening changes remains a
-release gate.
+v1.1. Hardening commit `1712f17` passed cross-platform CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494).
 
 Canonical machine output is versioned independently from package internals.
 

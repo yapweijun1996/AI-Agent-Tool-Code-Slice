@@ -1,7 +1,8 @@
 # Language Adapter Contract
 
-Status: Implemented for the current adapter registry; latest hardening changes
-remain subject to the cross-platform release gate.
+Status: Implemented for the current adapter registry; hardening commit
+`1712f17` passed cross-platform CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494).
 
 ## Purpose
 

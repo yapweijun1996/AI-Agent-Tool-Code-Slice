@@ -137,12 +137,15 @@ passed the then-current 12 cases on Windows, macOS, and Ubuntu with Node 20 and
 Node 22. The run also passed the then-current 39-test unit suite, grammar
 integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in
 set now has 16 cases; the published release evidence covers 47 tests, while
-the current working tree has 55 tests. The latest CI run
+hardening commit `1712f17` has 55 tests. The V0.2 release CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
-passed the current 16 cases, 47-test suite, grammar integrity check, CLI smoke
+passed the previous 16 cases, 47-test suite, grammar integrity check, CLI smoke
 test, and `npm pack --dry-run` on all nine Windows/macOS/Ubuntu × Node 18.18.0/20/22
 jobs. This covers the new CFML embedded JS/CSS/SQL paths and the declared Node
-floor. Release CI run
+floor. Hardening CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
+passed the 55-test suite, 16 Golden cases, 3 agent-facing E2E cases, and the
+three Node 20 benchmark jobs. Release CI run
 [33937790994](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33937790994)
 also passed the core checks and completed registry installation plus CFML
 embedding verification on Windows, macOS, and Ubuntu with Node 20.
@@ -234,8 +237,8 @@ vendor-specific live runs remain opt-in and are tracked separately in
 `docs/AGENT_INTEGRATIONS.md`.
 
 The CI test matrix is configured to run this suite on Windows, macOS, and
-Ubuntu across the declared Node versions. CI run
-[33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
+Ubuntu across the declared Node versions. Hardening CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
 passed the suite on all nine matrix jobs. This is package-level cross-platform
 evidence, not Codex, Claude, Gemini, or OpenCode behavioral certification. Do
 not combine its result with parser accuracy or latency metrics.

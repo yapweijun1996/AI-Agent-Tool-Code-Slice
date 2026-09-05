@@ -1,7 +1,9 @@
 # CLI Contract
 
-Status: Implemented for the current CLI; cross-platform verification for the
-latest hardening changes remains a release gate.
+Status: Implemented for the current CLI; hardening commit `1712f17` passed
+cross-platform CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494).
+Registry installation remains separately evidenced for published releases.
 
 Executable:
 

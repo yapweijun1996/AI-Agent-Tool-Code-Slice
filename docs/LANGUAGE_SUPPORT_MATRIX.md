@@ -117,9 +117,9 @@ unmotivated later.
 - Functional correctness (the test suite) is CI-verified on Windows/macOS/
   Linux — see "Certification evidence" above. The `0.2.0` release CI also
   verified real public-registry installation on all three listed platforms with
-  Node 20. Benchmark execution has prior Node 20 cross-platform evidence, but
-  benchmark numbers are environment-specific and the latest hardening rerun is
-  currently local.
+  Node 20. Hardening commit `1712f17` passed the Node 20 benchmark jobs on all
+  three platforms; benchmark numbers remain environment-specific and are not
+  a universal latency or memory promise.
 - `typescript.wasm`/`tsx.wasm` report `Language.name === null` (grammar ABI
   14, built from `tree-sitter-typescript@0.23.2`'s pre-generated parser
   source) where the other five grammars (ABI 15) self-report identity.

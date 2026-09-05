@@ -4,7 +4,10 @@ Status: the reproducible benchmark runner is implemented. The checked-in
 report is a local macOS evidence set; the earlier CI run
 [33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
 passed the same cohort on Ubuntu, Windows, and macOS with Node 20 and uploaded
-one artifact per job. The current report's warm API repetitions run in one
+one artifact per job. Hardening CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
+also passed the benchmark jobs on all three platforms and uploaded one
+non-expired artifact per job. The current report's warm API repetitions run in one
 isolated worker per target, so its RSS rows are not accumulated across grammar
 cohorts. Do not treat the local report or a single CI artifact as a universal
 latency/memory promise. Regenerate via:

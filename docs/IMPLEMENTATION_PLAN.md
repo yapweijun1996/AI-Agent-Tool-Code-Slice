@@ -132,9 +132,10 @@ documented in `docs/PERFORMANCE_BENCHMARK_RESULTS.md` and
 
 The current hardening phase additionally covers scoped native Tree cleanup,
 runtime request validation, bounded symbol/output materialization, strict CLI
-argument parsing, and concurrent grammar-load coalescing. These changes are
-implemented locally and require a fresh cross-platform CI run before a new
-release status is claimed.
+argument parsing, and concurrent grammar-load coalescing. Hardening commit
+`1712f17` passed cross-platform CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494).
+Registry installation remains separately verified for published releases.
 
 No marketing benchmark before this phase.
 

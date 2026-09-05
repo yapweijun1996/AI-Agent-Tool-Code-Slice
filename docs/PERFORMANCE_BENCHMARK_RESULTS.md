@@ -7,7 +7,7 @@ performance claim.
 
 ## Reproducibility
 
-- Commit: `8cfdb110d736e0feb2880a4c19d4eebb40909900 (working tree dirty)`
+- Commit: `1712f174db6a5f9d3d4697dfff60bf1154f4302c`
 - OS: Darwin 25.5.0 (darwin)
 - Architecture: arm64
 - Node version: v23.10.0
@@ -40,26 +40,26 @@ performance claim.
 
 | Adapter | Fixture | Source bytes | Raw read | Host grammar load | Parse | Adapter extract | Cold outline | Warm outline | Cold symbol | Warm symbol |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| javascript | test/fixtures/benchmark/5kb.js | 5,094 | 0.01 ms | 5.86 ms | 1.00 ms | 0.99 ms | 65.78 ms | 1.80 ms | 66.59 ms | 1.88 ms |
-| javascript | test/fixtures/benchmark/50kb.js | 50,058 | 0.02 ms | 1.50 ms | 6.81 ms | 4.95 ms | 70.67 ms | 12.28 ms | 69.93 ms | 14.40 ms |
-| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 0.11 ms | 0.82 ms | 66.17 ms | 48.18 ms | 218.63 ms | 123.92 ms | 192.64 ms | 116.94 ms |
-| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 0.21 ms | 1.09 ms | 133.88 ms | 99.25 ms | 359.97 ms | 241.77 ms | 336.72 ms | 235.93 ms |
-| typescript | test/fixtures/benchmark/typescript/5kb.ts | 5,007 | 0.01 ms | 3.15 ms | 0.81 ms | 0.56 ms | 70.34 ms | 2.02 ms | 67.70 ms | 1.92 ms |
-| typescript | test/fixtures/benchmark/typescript/50kb.ts | 50,064 | 0.02 ms | 1.15 ms | 7.49 ms | 4.64 ms | 74.38 ms | 13.59 ms | 73.94 ms | 15.25 ms |
-| typescript | test/fixtures/benchmark/typescript/500kb.ts | 500,220 | 0.12 ms | 4.33 ms | 71.43 ms | 51.46 ms | 221.03 ms | 130.32 ms | 208.43 ms | 126.91 ms |
-| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 0.21 ms | 0.98 ms | 142.65 ms | 102.52 ms | 375.61 ms | 255.06 ms | 348.84 ms | 252.85 ms |
-| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 5,056 | 0.01 ms | 2.09 ms | 0.72 ms | 0.51 ms | 66.60 ms | 2.08 ms | 69.79 ms | 1.77 ms |
-| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 50,116 | 0.02 ms | 1.08 ms | 6.62 ms | 4.71 ms | 70.87 ms | 14.37 ms | 69.01 ms | 14.65 ms |
-| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 500,060 | 0.12 ms | 1.14 ms | 63.88 ms | 48.05 ms | 203.70 ms | 124.90 ms | 186.95 ms | 120.92 ms |
-| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 0.22 ms | 1.07 ms | 133.25 ms | 96.37 ms | 345.22 ms | 240.81 ms | 320.57 ms | 235.58 ms |
-| python | test/fixtures/benchmark/python/5kb.py | 5,130 | 0.01 ms | 3.38 ms | 0.80 ms | 0.60 ms | 65.07 ms | 2.01 ms | 64.81 ms | 1.75 ms |
-| python | test/fixtures/benchmark/python/50kb.py | 50,070 | 0.02 ms | 0.72 ms | 7.30 ms | 4.90 ms | 71.10 ms | 12.79 ms | 66.76 ms | 14.60 ms |
-| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 0.11 ms | 1.70 ms | 71.27 ms | 53.09 ms | 223.75 ms | 130.06 ms | 203.31 ms | 127.53 ms |
-| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 0.21 ms | 6.41 ms | 142.97 ms | 101.52 ms | 370.12 ms | 267.23 ms | 344.91 ms | 263.40 ms |
-| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 5,041 | 0.01 ms | 6.23 ms | 0.18 ms | 9.18 ms | 228.00 ms | 3.05 ms | 231.86 ms | 2.58 ms |
-| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 50,024 | 0.02 ms | 2.07 ms | 0.89 ms | 22.21 ms | 241.34 ms | 25.41 ms | 245.16 ms | 21.95 ms |
-| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 0.11 ms | 1.67 ms | 8.36 ms | 411.01 ms | 549.09 ms | 449.49 ms | 540.22 ms | 443.17 ms |
-| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 0.21 ms | 3.32 ms | 17.15 ms | 1339.69 ms | 1486.89 ms | 1465.29 ms | 1454.62 ms | 1429.22 ms |
+| javascript | test/fixtures/benchmark/5kb.js | 5,094 | 0.02 ms | 6.35 ms | 1.29 ms | 1.11 ms | 74.81 ms | 1.80 ms | 72.20 ms | 1.84 ms |
+| javascript | test/fixtures/benchmark/50kb.js | 50,058 | 0.03 ms | 1.19 ms | 7.40 ms | 5.73 ms | 78.26 ms | 12.82 ms | 73.16 ms | 15.19 ms |
+| javascript | test/fixtures/benchmark/500kb.js | 500,170 | 0.12 ms | 1.04 ms | 68.07 ms | 51.82 ms | 228.86 ms | 127.00 ms | 202.24 ms | 121.28 ms |
+| javascript | test/fixtures/benchmark/1mb.js | 1,000,170 | 0.27 ms | 0.89 ms | 133.95 ms | 97.82 ms | 496.23 ms | 266.21 ms | 376.54 ms | 276.63 ms |
+| typescript | test/fixtures/benchmark/typescript/5kb.ts | 5,007 | 0.01 ms | 4.14 ms | 0.95 ms | 0.55 ms | 75.18 ms | 2.72 ms | 77.79 ms | 2.27 ms |
+| typescript | test/fixtures/benchmark/typescript/50kb.ts | 50,064 | 0.02 ms | 1.03 ms | 8.39 ms | 5.54 ms | 82.89 ms | 19.22 ms | 86.34 ms | 20.13 ms |
+| typescript | test/fixtures/benchmark/typescript/500kb.ts | 500,220 | 0.13 ms | 5.73 ms | 84.22 ms | 62.30 ms | 237.51 ms | 162.46 ms | 229.59 ms | 157.21 ms |
+| typescript | test/fixtures/benchmark/typescript/1mb.ts | 1,000,170 | 0.23 ms | 1.95 ms | 177.30 ms | 130.81 ms | 415.59 ms | 311.12 ms | 380.78 ms | 304.02 ms |
+| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 5,056 | 0.01 ms | 2.77 ms | 0.80 ms | 0.56 ms | 80.81 ms | 2.78 ms | 76.91 ms | 2.23 ms |
+| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 50,116 | 0.02 ms | 1.13 ms | 7.56 ms | 6.16 ms | 84.67 ms | 18.98 ms | 85.47 ms | 18.60 ms |
+| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 500,060 | 0.11 ms | 1.36 ms | 78.45 ms | 58.62 ms | 213.09 ms | 148.83 ms | 197.63 ms | 146.93 ms |
+| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 1,000,020 | 0.22 ms | 3.73 ms | 132.31 ms | 101.57 ms | 347.64 ms | 244.42 ms | 328.71 ms | 241.95 ms |
+| python | test/fixtures/benchmark/python/5kb.py | 5,130 | 0.01 ms | 1.20 ms | 0.82 ms | 0.55 ms | 69.95 ms | 2.12 ms | 67.87 ms | 1.70 ms |
+| python | test/fixtures/benchmark/python/50kb.py | 50,070 | 0.02 ms | 0.84 ms | 7.54 ms | 4.29 ms | 72.88 ms | 15.70 ms | 69.14 ms | 15.12 ms |
+| python | test/fixtures/benchmark/python/500kb.py | 500,054 | 0.12 ms | 0.83 ms | 76.21 ms | 52.56 ms | 231.96 ms | 135.50 ms | 210.41 ms | 129.54 ms |
+| python | test/fixtures/benchmark/python/1mb.py | 1,000,056 | 0.22 ms | 0.86 ms | 145.91 ms | 101.04 ms | 379.31 ms | 273.74 ms | 356.71 ms | 271.85 ms |
+| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 5,041 | 0.01 ms | 5.05 ms | 0.18 ms | 9.77 ms | 236.75 ms | 4.42 ms | 338.19 ms | 3.02 ms |
+| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 50,024 | 0.02 ms | 1.66 ms | 0.89 ms | 23.56 ms | 358.84 ms | 27.13 ms | 284.94 ms | 23.02 ms |
+| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 500,079 | 0.13 ms | 1.66 ms | 8.60 ms | 438.97 ms | 669.66 ms | 463.07 ms | 628.77 ms | 472.64 ms |
+| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 1,000,087 | 0.23 ms | 1.86 ms | 17.90 ms | 1346.17 ms | 1575.13 ms | 1443.18 ms | 1475.01 ms | 1443.45 ms |
 
 Definitions:
 
@@ -112,31 +112,31 @@ terminal newline) are measured separately.
 
 | Adapter | Fixture | Isolated warm-worker RSS after operation |
 |---|---|---:|
-| javascript | test/fixtures/benchmark/5kb.js | 71.7 MiB |
-| javascript | test/fixtures/benchmark/50kb.js | 89.1 MiB |
-| javascript | test/fixtures/benchmark/500kb.js | 147.8 MiB |
-| javascript | test/fixtures/benchmark/1mb.js | 190.8 MiB |
-| typescript | test/fixtures/benchmark/typescript/5kb.ts | 75.6 MiB |
-| typescript | test/fixtures/benchmark/typescript/50kb.ts | 92.8 MiB |
-| typescript | test/fixtures/benchmark/typescript/500kb.ts | 146.7 MiB |
-| typescript | test/fixtures/benchmark/typescript/1mb.ts | 201.4 MiB |
-| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 76.4 MiB |
-| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 91.8 MiB |
-| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 133.6 MiB |
-| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 163.0 MiB |
-| python | test/fixtures/benchmark/python/5kb.py | 70.5 MiB |
-| python | test/fixtures/benchmark/python/50kb.py | 87.6 MiB |
-| python | test/fixtures/benchmark/python/500kb.py | 159.8 MiB |
-| python | test/fixtures/benchmark/python/1mb.py | 225.7 MiB |
-| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 220.5 MiB |
-| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 236.2 MiB |
-| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 259.5 MiB |
-| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 338.2 MiB |
+| javascript | test/fixtures/benchmark/5kb.js | 72.4 MiB |
+| javascript | test/fixtures/benchmark/50kb.js | 88.2 MiB |
+| javascript | test/fixtures/benchmark/500kb.js | 149.1 MiB |
+| javascript | test/fixtures/benchmark/1mb.js | 196.0 MiB |
+| typescript | test/fixtures/benchmark/typescript/5kb.ts | 75.0 MiB |
+| typescript | test/fixtures/benchmark/typescript/50kb.ts | 93.0 MiB |
+| typescript | test/fixtures/benchmark/typescript/500kb.ts | 151.7 MiB |
+| typescript | test/fixtures/benchmark/typescript/1mb.ts | 204.0 MiB |
+| tsx | test/fixtures/benchmark/tsx/5kb.tsx | 75.8 MiB |
+| tsx | test/fixtures/benchmark/tsx/50kb.tsx | 92.7 MiB |
+| tsx | test/fixtures/benchmark/tsx/500kb.tsx | 132.0 MiB |
+| tsx | test/fixtures/benchmark/tsx/1mb.tsx | 162.0 MiB |
+| python | test/fixtures/benchmark/python/5kb.py | 70.3 MiB |
+| python | test/fixtures/benchmark/python/50kb.py | 88.2 MiB |
+| python | test/fixtures/benchmark/python/500kb.py | 161.3 MiB |
+| python | test/fixtures/benchmark/python/1mb.py | 228.3 MiB |
+| cfml | test/fixtures/benchmark/cfml/5kb.cfm | 221.7 MiB |
+| cfml | test/fixtures/benchmark/cfml/50kb.cfm | 234.4 MiB |
+| cfml | test/fixtures/benchmark/cfml/500kb.cfm | 278.1 MiB |
+| cfml | test/fixtures/benchmark/cfml/1mb.cfm | 341.8 MiB |
 
 The RSS column is a post-operation sample from the target's isolated warm
 worker, not a portable OS peak-memory profile. It includes Node, the WASM
 runtime, the loaded grammar, and the target's warm API allocations. The largest
-observed sample in this run was **338.2 MiB**; use a
+observed sample in this run was **341.8 MiB**; use a
 platform-specific profiler when memory limits are part of a deployment decision.
 
 ## Fixture hashes

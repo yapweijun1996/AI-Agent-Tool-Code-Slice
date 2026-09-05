@@ -36,9 +36,12 @@ The project follows semantic versioning.
   stateless wrapper over Core with an explicit source-input and privacy
   contract.
 
-The changes in this section are implemented and locally verified in the
-current working tree. They are not a new cross-platform release claim until
-the CI matrix is rerun.
+The changes in this section are implemented and cross-platform CI verified.
+CI run [33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
+passed all nine Windows/macOS/Ubuntu x Node 18.18.0/20/22 test jobs and all
+three Node 20 benchmark jobs. The registry-install job was skipped because
+this commit was not published; public-registry installation remains covered
+by the separate `0.2.0` release evidence above.
 
 ## [0.2.0] - 2026-09-05
 

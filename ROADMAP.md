@@ -25,11 +25,13 @@ runner are implemented. CI run
 [33944283579](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33944283579)
 passed all nine agent-facing test matrix jobs and all three Ubuntu/Windows/macOS
 Node 20 benchmark jobs, with one report artifact uploaded per benchmark job.
-The current working tree adds parser/tree lifecycle cleanup, bounded request and
-output budgets, strict CLI argument validation, and an additive v1.1 CLI error
-envelope. These changes pass 55 unit tests, 16 Golden cases, and 3 local
-agent-facing E2E cases; the expanded cross-platform evidence is still a
-release gate.
+Hardening commit `1712f17` adds parser/tree lifecycle cleanup, bounded request
+and output budgets, strict CLI argument validation, and an additive v1.1 CLI
+error envelope. CI run
+[33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
+passed all nine cross-platform test jobs and all three Node 20 benchmark jobs.
+The registry-install job was skipped for this unpublished commit; published
+registry evidence remains tracked separately.
 Vendor-specific live agent certification remains a separate opt-in evidence
 requirement.
 
