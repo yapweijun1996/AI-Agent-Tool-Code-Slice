@@ -83,7 +83,8 @@ Do not rely on source order as a hidden tiebreaker.
 
 ## Line resolution
 
-Each adapter defines an ordered set of supported containers.
+Adapters expose normalized symbol boundaries; Core performs the generic line
+and range containment decision.
 
 Example TypeScript:
 
@@ -95,7 +96,10 @@ module
 block
 ```
 
-The minimal meaningful supported container containing the line should win.
+For `line` and expanded `range`, Core removes leading/trailing whitespace
+and blank boundary lines from the selection only while resolving containment.
+The minimal supported container containing that meaningful byte span should
+win. The unexpanded range still returns the exact requested line span.
 
 ## Malformed source
 

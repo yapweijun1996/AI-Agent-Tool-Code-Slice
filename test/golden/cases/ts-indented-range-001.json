@@ -1,0 +1,17 @@
+{
+  "id": "ts-indented-range-001",
+  "file": "test/fixtures/typescript/indented-method.ts",
+  "operation": "range",
+  "selector": { "startLine": 2, "endLine": 6, "expand": true },
+  "expected": {
+    "kind": "method",
+    "name": "save",
+    "startLine": 3,
+    "endLine": 5,
+    "startColumn": 3,
+    "endColumn": 4,
+    "startByte": 22,
+    "endByte": 73,
+    "codeIncludes": ["save(value: string): string", "return value;"]
+  }
+}

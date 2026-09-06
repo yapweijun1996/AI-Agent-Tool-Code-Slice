@@ -88,7 +88,7 @@ export function resolveLineSelector(
     );
   }
 
-  const pointRange = sourceIndex.lineRange(selector.line, selector.line);
+  const pointRange = sourceIndex.contentByteRangeForLines(selector.line, selector.line);
   const pool = [...symbols, wholeFileContainer(sourceIndex, language)];
   const best = smallestContaining(pool, pointRange.startByte, pointRange.endByte);
   return best ?? wholeFileContainer(sourceIndex, language);
@@ -127,7 +127,8 @@ export function resolveRangeSelector(
     };
   }
 
+  const contentRange = sourceIndex.contentByteRangeForLines(startLine, endLine);
   const pool = [...symbols, wholeFileContainer(sourceIndex, language)];
-  const best = smallestContaining(pool, range.startByte, range.endByte);
+  const best = smallestContaining(pool, contentRange.startByte, contentRange.endByte);
   return best ?? wholeFileContainer(sourceIndex, language);
 }

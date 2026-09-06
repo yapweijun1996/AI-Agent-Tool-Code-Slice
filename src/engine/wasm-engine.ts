@@ -209,7 +209,11 @@ export class WasmEngine implements ParserEngine {
     try {
       try {
         parser.setLanguage(cached.language);
-        tree = parser.parse(source) ?? undefined;
+        // Tree-sitter grammars treat U+FEFF as an unexpected token. Mask only
+        // a leading BOM with one same-width space so node indices and columns
+        // remain aligned with the original source while parsing stays clean.
+        const parserSource = source.startsWith("\uFEFF") ? ` ${source.slice(1)}` : source;
+        tree = parser.parse(parserSource) ?? undefined;
         if (!tree) {
           throw new CodeSliceError("PARSE_FAILED", `Parser returned no tree for language "${loaded.id}"`);
         }

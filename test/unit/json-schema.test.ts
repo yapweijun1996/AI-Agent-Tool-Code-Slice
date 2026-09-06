@@ -7,6 +7,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { capabilities, outline, slice } from "../../src/core/index.js";
 import { buildCliErrorEnvelope } from "../../src/schema/envelope.js";
 import { CodeSliceError } from "../../src/schema/errors.js";
+import { finalizeResultEnvelope, MIN_OUTPUT_BYTES } from "../../src/core/limits.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
@@ -75,3 +76,27 @@ test("CLI usage error envelope validates against the additive v1.1 schema", () =
   const envelope = buildCliErrorEnvelope(new CodeSliceError("INVALID_ARGUMENT", "Unknown flag --typo"));
   assert.equal(validateCli(envelope), true, ajv.errorsText(validateCli.errors));
 });
+
+test("bounded output-limit fallback validates against the v1 schema", () => {
+  const oversized = buildErrorEnvelopeForTest();
+  const envelope = finalizeResultEnvelope(oversized, MIN_OUTPUT_BYTES);
+  assert.equal(envelope.ok, false);
+  assertValidEnvelope(envelope, "bounded output-limit fallback");
+  assert.ok(Buffer.byteLength(JSON.stringify(envelope), "utf8") <= MIN_OUTPUT_BYTES);
+});
+
+function buildErrorEnvelopeForTest() {
+  return {
+    schemaVersion: "1.0" as const,
+    ok: false as const,
+    operation: "slice" as const,
+    file: "x".repeat(10_000),
+    error: {
+      code: "SYMBOL_AMBIGUOUS",
+      message: "x".repeat(10_000),
+      recoverable: true,
+      candidates: [{ name: "y".repeat(10_000) }],
+    },
+    warnings: [],
+  };
+}

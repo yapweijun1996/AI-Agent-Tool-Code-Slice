@@ -26,6 +26,16 @@ The project follows semantic versioning.
 - Added runtime request validation and bounded file, symbol, and serialized
   output budgets. Invalid values fail closed with `INVALID_ARGUMENT`; valid
   results that exceed the output budget return `OUTPUT_LIMIT_EXCEEDED`.
+- Preserved a leading UTF-8 BOM in the source coordinate space and masked it
+  with a same-width parser-safe character so original byte ranges remain
+  exact without synthetic parse warnings.
+- Made `line` and expanded `range` resolution ignore leading/trailing
+  whitespace at selection boundaries, so indented declarations resolve to
+  their smallest supported container without changing non-expanded ranges.
+- Applied serialized output budgets to error envelopes as well as successes.
+  Valid budgets now range from 256 bytes through 8 MiB; oversized diagnostics
+  become a compact `OUTPUT_LIMIT_EXCEEDED` envelope instead of being
+  truncated.
 - Made CLI flag and positional-argument parsing strict and added an additive
   v1.1 JSON envelope for CLI usage errors, while keeping Core/API result
   envelopes on schema v1.0.
@@ -36,12 +46,18 @@ The project follows semantic versioning.
   stateless wrapper over Core with an explicit source-input and privacy
   contract.
 
-The changes in this section are implemented and cross-platform CI verified.
+The parser hardening and agent workflow changes above are implemented and
+cross-platform CI verified.
 CI run [33972164494](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33972164494)
 passed all nine Windows/macOS/Ubuntu x Node 18.18.0/20/22 test jobs and all
 three Node 20 benchmark jobs. The registry-install job was skipped because
 this commit was not published; public-registry installation remains covered
 by the separate `0.2.0` release evidence above.
+
+The BOM, line/range, and error-envelope changes in this Unreleased section
+have passed local verification with 64 unit tests, 19 Golden Eval cases, 3
+agent-facing E2E cases, and 8 grammar integrity checks. Cross-platform CI
+evidence for these changes is pending.
 
 ## [0.2.0] - 2026-09-05
 

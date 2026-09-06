@@ -95,7 +95,10 @@ export function loadFile(requestedPath: string, options: LoadFileOptions = {}): 
   const buffer = readFileSync(realPath);
   let source: string;
   try {
-    source = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+    // Keep a leading UTF-8 BOM in the decoded source. Public byte ranges are
+    // measured against the original file, so dropping these three bytes here
+    // would shift every later range and break byte-for-byte extraction.
+    source = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(buffer);
   } catch {
     throw new CodeSliceError("ENCODING_UNSUPPORTED", `File "${requestedPath}" is not valid UTF-8`);
   }

@@ -92,6 +92,22 @@ Current stable codes:
 - `OUTPUT_LIMIT_EXCEEDED`
 - `INTERNAL_ERROR`
 
+## Serialized output budget
+
+Core uses an 8 MiB default serialized JSON envelope limit. A caller may narrow
+`maxOutputBytes` to any value from 256 bytes through 8 MiB. The limit applies
+to both success and error envelopes, and is measured on `JSON.stringify()`
+output in UTF-8; the CLI's final newline is a transport delimiter and is not
+part of the envelope budget.
+
+When a valid operation cannot fit its requested budget, the complete result is
+replaced by a compact v1 `OUTPUT_LIMIT_EXCEEDED` error envelope. It omits
+`file`, `candidates`, and other dynamic fields so the fallback itself fits
+within the minimum budget. Fields are never silently truncated. If the budget
+value is below 256 bytes or otherwise malformed, the request returns
+`INVALID_ARGUMENT` using the process-wide hard ceiling for that validation
+error.
+
 ## Lines and columns
 
 Recommended public convention:

@@ -1,0 +1,17 @@
+{
+  "id": "ts-indented-line-001",
+  "file": "test/fixtures/typescript/indented-method.ts",
+  "operation": "line",
+  "selector": { "line": 3 },
+  "expected": {
+    "kind": "method",
+    "name": "save",
+    "startLine": 3,
+    "endLine": 5,
+    "startColumn": 3,
+    "endColumn": 4,
+    "startByte": 22,
+    "endByte": 73,
+    "codeIncludes": ["save(value: string): string", "return value;"]
+  }
+}

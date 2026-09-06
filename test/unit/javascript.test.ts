@@ -120,6 +120,20 @@ test("line selector out of file bounds fails closed", async () => {
   assert.equal(envelope.error.code, "LINE_OUT_OF_RANGE");
 });
 
+test("line and expanded range selectors do not guess between same-line siblings", async () => {
+  for (const selector of [
+    { type: "line", line: 1 } as const,
+    { type: "range", startLine: 1, endLine: 1, expand: true } as const,
+  ]) {
+    const envelope = await slice({ file: fixture("same-line-siblings.js"), selector });
+    assert.equal(envelope.ok, true);
+    if (!envelope.ok) continue;
+    const result = envelope.result as { kind: string; name: string | null };
+    assert.equal(result.kind, "module");
+    assert.equal(result.name, null);
+  }
+});
+
 test("range without --expand returns the exact requested text, not a container", async () => {
   const envelope = await slice({
     file: fixture("basic.js"),
@@ -188,4 +202,26 @@ test("byte offsets account for multi-byte characters (UTF-16 vs UTF-8 divergence
   const result = envelope.result as { range: { startByte: number }; code: string };
   assert.equal(result.range.startByte, expectedStartByte);
   assert.match(result.code, /^function afterEmoji/);
+});
+
+test("UTF-8 BOM byte ranges match the original file bytes", async () => {
+  const filePath = fixture("utf8-bom.js");
+  const buffer = readFileSync(filePath);
+  const envelope = await slice({ file: filePath, selector: { type: "symbol", name: "afterBom" } });
+
+  assert.equal(envelope.ok, true);
+  if (!envelope.ok) return;
+  const result = envelope.result as {
+    range: { startLine: number; startColumn: number; startByte: number; endByte: number };
+    code: string;
+  };
+  assert.equal(result.range.startLine, 1);
+  assert.equal(result.range.startByte, 3);
+  assert.equal(result.range.startColumn, 2);
+  assert.deepEqual(envelope.warnings, []);
+  assert.equal(
+    buffer.subarray(result.range.startByte, result.range.endByte).toString("utf8"),
+    result.code,
+  );
+  assert.match(result.code, /^export function afterBom/);
 });

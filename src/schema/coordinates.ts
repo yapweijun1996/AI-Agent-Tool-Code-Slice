@@ -96,6 +96,44 @@ export class SourceIndex {
     };
   }
 
+  /**
+   * Returns the byte span of the meaningful content at the edges of a line
+   * selection. Leading/trailing whitespace and blank boundary lines are
+   * ignored only for container resolution; the public selected range remains
+   * the exact requested line span.
+   */
+  contentByteRangeForLines(startLine: number, endLine: number): Pick<SourceRange, "startByte" | "endByte"> {
+    let startPoint: TSPoint | undefined;
+    for (let row = startLine - 1; row < endLine; row += 1) {
+      const line = this.lines[row] ?? "";
+      const firstContentColumn = line.search(/\S/);
+      if (firstContentColumn >= 0) {
+        startPoint = { row, column: firstContentColumn };
+        break;
+      }
+    }
+
+    let endPoint: TSPoint | undefined;
+    for (let row = endLine - 1; row >= startLine - 1; row -= 1) {
+      const line = this.lines[row] ?? "";
+      const content = line.trimEnd();
+      if (content.length > 0) {
+        endPoint = { row, column: content.length };
+        break;
+      }
+    }
+
+    if (!startPoint || !endPoint) {
+      const fallback = this.lineRange(startLine, endLine);
+      return { startByte: fallback.startByte, endByte: fallback.endByte };
+    }
+
+    return {
+      startByte: this.byteOffsetAt(startPoint),
+      endByte: this.byteOffsetAt(endPoint),
+    };
+  }
+
   /** Exact source text for a raw 1-based [startLine, endLine] span, newline-joined. */
   textForLines(startLine: number, endLine: number): string {
     return this.lines.slice(startLine - 1, endLine).join("\n");

@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { MIN_OUTPUT_BYTES } from "../../src/core/limits.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
@@ -246,4 +247,17 @@ test("agent-facing CLI rejects malformed arguments with JSON-clean, machine-read
   const helpJson = runCli(root, ["--help", "--json"]);
   assert.equal(helpJson.status, 2);
   assert.equal(record(parseCliErrorEnvelope(helpJson, "help with json").error, "help with json.error").code, "INVALID_ARGUMENT");
+
+  const boundedError = runCli(root, [
+    "symbol",
+    "src/basic.js",
+    "x".repeat(10_000),
+    "--max-output-bytes",
+    String(MIN_OUTPUT_BYTES),
+    "--json",
+  ]);
+  assert.equal(boundedError.status, 8);
+  const boundedEnvelope = parseJsonEnvelope(boundedError, "bounded output error");
+  assert.equal(record(boundedEnvelope.error, "bounded output error.error").code, "OUTPUT_LIMIT_EXCEEDED");
+  assert.ok(Buffer.byteLength(JSON.stringify(boundedEnvelope), "utf8") <= MIN_OUTPUT_BYTES);
 });

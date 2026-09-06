@@ -177,12 +177,14 @@ Core validates runtime requests before parsing. The default file budget is
 5,000,000 bytes and callers may lower it but may not raise it above the
 10,000,000-byte hard ceiling. Outline extraction has a bounded symbol budget;
 the default returned outline limit is 10,000 symbols and the extraction safety
-ceiling is 50,000 symbols. Success envelopes are checked against the default
-8 MiB serialized-output limit, which callers may lower but may not raise.
+ceiling is 50,000 symbols. Core envelopes are checked against the default
+8 MiB serialized-output limit, which callers may lower to a minimum of 256
+bytes but may not raise. The limit covers both success and error envelopes.
 
 Limits fail closed with `INVALID_ARGUMENT` for malformed values and
-`OUTPUT_LIMIT_EXCEEDED` when a valid operation cannot fit the requested output
-budget. A symbol slice is never silently truncated.
+`OUTPUT_LIMIT_EXCEEDED` when a valid operation or its error envelope cannot
+fit the requested output budget. The finalizer returns a compact schema-valid
+limit error and never silently truncates result or diagnostic fields.
 
 ## Mixed-language model
 

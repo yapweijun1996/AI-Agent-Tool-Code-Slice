@@ -8,6 +8,7 @@ import { buildCliErrorEnvelope, type CliErrorEnvelope } from "../schema/envelope
 import { CodeSliceError } from "../schema/errors.js";
 import type { ErrorCode } from "../schema/errors.js";
 import { SYMBOL_KINDS } from "../schema/types.js";
+import { finalizeCliErrorEnvelope } from "../core/limits.js";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -132,7 +133,7 @@ Global flags:
   --root <path>     Constrain readable paths to this root.
   --max-bytes <n>   Reject files larger than <n> bytes.
   --max-output-bytes <n>
-                    Reject serialized results larger than <n> bytes.
+                    Reject serialized envelopes larger than <n> bytes (256..8388608).
   --debug           Reserved; currently a no-op.
   --version         Print the package version and exit.
   --help            Print this help and exit.
@@ -188,15 +189,19 @@ function parseIntArg(name: string, value: string): number {
   return n;
 }
 
-function printCliUsageError(error: CliUsageError | CodeSliceError, json: boolean): void {
+function printCliUsageError(error: CliUsageError | CodeSliceError, json: boolean): DeliveryEnvelope {
   const codeError =
     error instanceof CodeSliceError ? error : new CodeSliceError("INVALID_ARGUMENT", error.message);
-  const envelope = buildCliErrorEnvelope(codeError);
+  const envelope = finalizeCliErrorEnvelope(buildCliErrorEnvelope(codeError));
   if (json) {
     process.stdout.write(JSON.stringify(envelope) + "\n");
-    return;
+    return envelope;
   }
-  process.stderr.write(`error: ${codeError.code}: ${codeError.message}\n`);
+  process.stderr.write(`error: ${envelope.error.code}: ${envelope.error.message}\n`);
+  if (envelope.error.candidates) {
+    process.stderr.write(JSON.stringify(envelope.error.candidates, null, 2) + "\n");
+  }
+  return envelope;
 }
 
 async function run(): Promise<number> {
@@ -206,15 +211,15 @@ async function run(): Promise<number> {
   try {
     parsed = parseArgs(argv);
   } catch (err) {
-    printCliUsageError(new CliUsageError((err as Error).message), jsonRequested);
-    return EXIT_ARGS_INVALID;
+    return exitCodeFor(printCliUsageError(new CliUsageError((err as Error).message), jsonRequested));
   }
 
   const json = Boolean(parsed.flags.json);
 
   if (json && (parsed.flags.version || parsed.flags.help)) {
-    printCliUsageError(new CliUsageError("--help and --version cannot be combined with --json"), true);
-    return EXIT_ARGS_INVALID;
+    return exitCodeFor(
+      printCliUsageError(new CliUsageError("--help and --version cannot be combined with --json"), true),
+    );
   }
 
   if (parsed.flags.version) {
@@ -223,8 +228,7 @@ async function run(): Promise<number> {
   }
   if (parsed.flags.help || parsed.command === undefined) {
     if (parsed.command === undefined && json) {
-      printCliUsageError(new CliUsageError("A command is required"), true);
-      return EXIT_ARGS_INVALID;
+      return exitCodeFor(printCliUsageError(new CliUsageError("A command is required"), true));
     }
     process.stdout.write(HELP_TEXT);
     return parsed.command === undefined ? EXIT_ARGS_INVALID : 0;
@@ -287,12 +291,10 @@ async function run(): Promise<number> {
     }
   } catch (err) {
     if (err instanceof CliUsageError) {
-      printCliUsageError(err, json);
-      return EXIT_ARGS_INVALID;
+      return exitCodeFor(printCliUsageError(err, json));
     }
     const unexpected = new CodeSliceError("INTERNAL_ERROR", err instanceof Error ? err.message : String(err));
-    printCliUsageError(unexpected, json);
-    return 1;
+    return exitCodeFor(printCliUsageError(unexpected, json));
   }
 }
 

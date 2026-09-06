@@ -43,6 +43,62 @@ test("ambiguous method name across TypeScript classes fails closed", async () =>
   assert.equal(envelope.error.code, "SYMBOL_AMBIGUOUS");
 });
 
+test("line selector trims indentation before choosing the smallest TypeScript container", async () => {
+  const envelope = await slice({
+    file: fixture("indented-method.ts"),
+    selector: { type: "line", line: 3 },
+  });
+  assert.equal(envelope.ok, true);
+  if (!envelope.ok) return;
+  const result = envelope.result as {
+    kind: string;
+    name: string | null;
+    range: { startLine: number; endLine: number };
+  };
+  assert.equal(result.kind, "method");
+  assert.equal(result.name, "save");
+  assert.equal(result.range.startLine, 3);
+  assert.equal(result.range.endLine, 5);
+});
+
+test("expanded ranges trim blank boundary lines without changing the returned symbol", async () => {
+  const envelope = await slice({
+    file: fixture("indented-method.ts"),
+    selector: { type: "range", startLine: 2, endLine: 6, expand: true },
+  });
+  assert.equal(envelope.ok, true);
+  if (!envelope.ok) return;
+  const result = envelope.result as { kind: string; name: string | null; code: string };
+  assert.equal(result.kind, "method");
+  assert.equal(result.name, "save");
+  assert.match(result.code, /^save\(value: string\): string \{/);
+  assert.match(result.code, /\n  \}$/);
+});
+
+test("class closing lines still resolve to the class after content trimming", async () => {
+  const envelope = await slice({
+    file: fixture("indented-method.ts"),
+    selector: { type: "line", line: 10 },
+  });
+  assert.equal(envelope.ok, true);
+  if (!envelope.ok) return;
+  const result = envelope.result as { kind: string; name: string | null };
+  assert.equal(result.kind, "class");
+  assert.equal(result.name, "Box");
+});
+
+test("whitespace-only selections use a safe enclosing container", async () => {
+  const envelope = await slice({
+    file: fixture("indented-method.ts"),
+    selector: { type: "line", line: 2 },
+  });
+  assert.equal(envelope.ok, true);
+  if (!envelope.ok) return;
+  const result = envelope.result as { kind: string; name: string | null };
+  assert.equal(result.kind, "class");
+  assert.equal(result.name, "Box");
+});
+
 test("TSX adapter parses JSX and finds the component function", async () => {
   const envelope = await slice({ file: fixture("basic.tsx"), selector: { type: "symbol", name: "Greeting" } });
   assert.equal(envelope.ok, true);

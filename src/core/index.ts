@@ -6,10 +6,12 @@ import { buildErrorEnvelope, buildSuccessEnvelope, type ResultEnvelope } from ".
 import type { CodeSymbol, Diagnostic, Selector, SymbolKind } from "../schema/types.js";
 import { loadFile } from "./file-loader.js";
 import {
-  assertSerializedOutputWithinLimit,
   createSymbolBudget,
+  finalizeResultEnvelope,
+  MAX_OUTPUT_BYTES,
   normalizeMaxOutputBytes,
   normalizeMaxSymbols,
+  requestedMaxOutputBytesOrDefault,
 } from "./limits.js";
 import { resolveLineSelector, resolveRangeSelector, resolveSymbolSelector } from "./slice-engine.js";
 import { buildCapabilities } from "./capabilities.js";
@@ -90,13 +92,17 @@ async function loadAndExtract(params: FileParams) {
 
 export async function capabilities(): Promise<ResultEnvelope> {
   try {
-    return buildSuccessEnvelope({ operation: "capabilities", result: buildCapabilities() });
+    return finalizeResultEnvelope(
+      buildSuccessEnvelope({ operation: "capabilities", result: buildCapabilities() }),
+      MAX_OUTPUT_BYTES,
+    );
   } catch (err) {
-    return toErrorEnvelope("capabilities", undefined, err);
+    return toErrorEnvelope("capabilities", undefined, err, MAX_OUTPUT_BYTES);
   }
 }
 
 export async function outline(params: OutlineParams): Promise<ResultEnvelope> {
+  const outputBudget = requestedMaxOutputBytesOrDefault(params);
   try {
     const validated = validateOutlineParams(params);
     const maxSymbols = normalizeMaxSymbols(validated.maxSymbols);
@@ -127,14 +133,14 @@ export async function outline(params: OutlineParams): Promise<ResultEnvelope> {
       result: { symbols: filtered.map(outlinePayload) },
       warnings: allWarnings,
     });
-    assertSerializedOutputWithinLimit(envelope, maxOutputBytes);
-    return envelope;
+    return finalizeResultEnvelope(envelope, maxOutputBytes);
   } catch (err) {
-    return toErrorEnvelope("outline", fileForError(params), err);
+    return toErrorEnvelope("outline", fileForError(params), err, outputBudget);
   }
 }
 
 export async function slice(params: SliceParams): Promise<ResultEnvelope> {
+  const outputBudget = requestedMaxOutputBytesOrDefault(params);
   try {
     const validated = validateSliceParams(params);
     const maxOutputBytes = normalizeMaxOutputBytes(validated.maxOutputBytes);
@@ -162,17 +168,28 @@ export async function slice(params: SliceParams): Promise<ResultEnvelope> {
       result: slicePayload(resolved, sourceIndex),
       warnings,
     });
-    assertSerializedOutputWithinLimit(envelope, maxOutputBytes);
-    return envelope;
+    return finalizeResultEnvelope(envelope, maxOutputBytes);
   } catch (err) {
-    return toErrorEnvelope("slice", fileForError(params), err);
+    return toErrorEnvelope("slice", fileForError(params), err, outputBudget);
   }
 }
 
-function toErrorEnvelope(operation: Operation, file: string | undefined, err: unknown): ResultEnvelope {
+function toErrorEnvelope(
+  operation: Operation,
+  file: string | undefined,
+  err: unknown,
+  maxOutputBytes: number,
+): ResultEnvelope {
+  let envelope: ResultEnvelope;
   if (err instanceof CodeSliceError) {
-    return buildErrorEnvelope({ operation, file, error: err });
+    envelope = buildErrorEnvelope({ operation, file, error: err });
+  } else {
+    const message = err instanceof Error ? err.message : String(err);
+    envelope = buildErrorEnvelope({
+      operation,
+      file,
+      error: new CodeSliceError("INTERNAL_ERROR", message),
+    });
   }
-  const message = err instanceof Error ? err.message : String(err);
-  return buildErrorEnvelope({ operation, file, error: new CodeSliceError("INTERNAL_ERROR", message) });
+  return finalizeResultEnvelope(envelope, maxOutputBytes);
 }

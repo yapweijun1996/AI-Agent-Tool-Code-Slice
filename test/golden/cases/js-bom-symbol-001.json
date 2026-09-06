@@ -1,0 +1,18 @@
+{
+  "id": "js-bom-symbol-001",
+  "file": "test/fixtures/javascript/utf8-bom.js",
+  "operation": "symbol",
+  "selector": { "name": "afterBom" },
+  "expected": {
+    "kind": "function",
+    "name": "afterBom",
+    "signature": "afterBom()",
+    "startLine": 1,
+    "startColumn": 2,
+    "endLine": 3,
+    "endColumn": 2,
+    "startByte": 3,
+    "endByte": 52,
+    "code": "export function afterBom() {\n  return \"你好\";\n}"
+  }
+}

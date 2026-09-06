@@ -64,3 +64,12 @@ test("file loading enforces byte limits, rejects invalid UTF-8, and stays read-o
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("file loading preserves a leading UTF-8 BOM for byte-accurate coordinates", () => {
+  const filePath = path.join(process.cwd(), "test", "fixtures", "javascript", "utf8-bom.js");
+  const raw = readFileSync(filePath);
+  const loaded = loadFile(filePath);
+
+  assert.deepEqual(raw.subarray(0, 3), Buffer.from([0xef, 0xbb, 0xbf]));
+  assert.equal(loaded.source.charCodeAt(0), 0xfeff);
+});

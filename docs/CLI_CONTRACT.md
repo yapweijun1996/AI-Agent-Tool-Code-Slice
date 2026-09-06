@@ -52,7 +52,8 @@ Options:
 outline result is limited to `10,000` entries and reports `OUTLINE_TRUNCATED`
 when more symbols were found. `--max-bytes` defaults to `5,000,000` and may
 not exceed `10,000,000`. `--max-output-bytes` defaults to `8 MiB` and may only
-narrow that ceiling. Invalid values fail closed with `INVALID_ARGUMENT`.
+narrow that ceiling to a minimum of 256 bytes. Invalid values fail closed with
+`INVALID_ARGUMENT`.
 
 ### symbol
 
@@ -120,6 +121,13 @@ example unknown flags, missing values, or extra positional arguments) use the
 additive v1.1 envelope with `operation: "cli"`; it has the same stable error
 object and an empty warnings array. This keeps malformed CLI requests JSON
 clean without changing the Core API's v1.0 operation envelopes.
+
+The output budget applies to the complete Core JSON envelope, including error
+envelopes. If a valid operation or its diagnostics exceed the requested
+budget, the CLI returns a compact `OUTPUT_LIMIT_EXCEEDED` envelope without
+truncating fields. The final stdout newline is a transport delimiter and does
+not count toward `--max-output-bytes`. CLI usage errors use the default 8 MiB
+safety ceiling because no valid operation budget exists yet.
 
 `--help` and `--version` are human-readable flags and cannot be combined with
 `--json`; the combination returns the v1.1 `INVALID_ARGUMENT` envelope so

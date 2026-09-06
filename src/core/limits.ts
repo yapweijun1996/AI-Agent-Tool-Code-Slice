@@ -1,4 +1,6 @@
 import { CodeSliceError } from "../schema/errors.js";
+import { buildCliErrorEnvelope, buildErrorEnvelope } from "../schema/envelope.js";
+import type { CliErrorEnvelope, ResultEnvelope } from "../schema/envelope.js";
 import type { SymbolBudget } from "../languages/types.js";
 
 /** The default maximum source size accepted by the public Core API. */
@@ -13,8 +15,11 @@ export const DEFAULT_MAX_SYMBOLS = 10_000;
 /** Protects extraction from materializing an unbounded symbol inventory. */
 export const MAX_EXTRACTED_SYMBOLS = 50_000;
 
-/** Maximum serialized success envelope size accepted by Core. */
+/** Maximum serialized result or error envelope size accepted by Core. */
 export const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
+
+/** Smallest budget that can carry a complete machine-readable error envelope. */
+export const MIN_OUTPUT_BYTES = 256;
 
 export function normalizeBoundedInteger(
   name: string,
@@ -45,7 +50,70 @@ export function normalizeMaxSymbols(value: unknown): number {
 }
 
 export function normalizeMaxOutputBytes(value: unknown): number {
-  return normalizeBoundedInteger("maxOutputBytes", value, MAX_OUTPUT_BYTES, 1, MAX_OUTPUT_BYTES);
+  return normalizeBoundedInteger(
+    "maxOutputBytes",
+    value,
+    MAX_OUTPUT_BYTES,
+    MIN_OUTPUT_BYTES,
+    MAX_OUTPUT_BYTES,
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Reads a caller's output budget before full request validation. Invalid
+ * requests use the process-wide hard ceiling so the validation error itself
+ * can still be delivered safely.
+ */
+export function requestedMaxOutputBytesOrDefault(value: unknown): number {
+  try {
+    return normalizeMaxOutputBytes(isRecord(value) ? value.maxOutputBytes : undefined);
+  } catch {
+    return MAX_OUTPUT_BYTES;
+  }
+}
+
+function serializedByteLength(value: unknown): number | undefined {
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? undefined : Buffer.byteLength(serialized, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function fitsOutputBudget(value: unknown, maxBytes: number): boolean {
+  const byteLength = serializedByteLength(value);
+  return byteLength !== undefined && byteLength <= maxBytes;
+}
+
+/**
+ * Finalizes every Core envelope at the delivery boundary. A result is either
+ * returned intact or replaced by a compact, schema-valid limit error; it is
+ * never silently truncated.
+ */
+export function finalizeResultEnvelope(envelope: ResultEnvelope, maxBytes: number): ResultEnvelope {
+  if (fitsOutputBudget(envelope, maxBytes)) return envelope;
+
+  return buildErrorEnvelope({
+    operation: envelope.operation,
+    error: new CodeSliceError(
+      "OUTPUT_LIMIT_EXCEEDED",
+      "Output exceeds the requested maxOutputBytes.",
+    ),
+  });
+}
+
+/** Bounds CLI usage errors by the process-wide hard ceiling. */
+export function finalizeCliErrorEnvelope(envelope: CliErrorEnvelope): CliErrorEnvelope {
+  if (fitsOutputBudget(envelope, MAX_OUTPUT_BYTES)) return envelope;
+
+  return buildCliErrorEnvelope(
+    new CodeSliceError("OUTPUT_LIMIT_EXCEEDED", "CLI error exceeds the output safety limit."),
+  );
 }
 
 export function createSymbolBudget(maxSymbols = MAX_EXTRACTED_SYMBOLS): SymbolBudget {
@@ -76,15 +144,14 @@ export function createSymbolBudget(maxSymbols = MAX_EXTRACTED_SYMBOLS): SymbolBu
 }
 
 export function assertSerializedOutputWithinLimit(value: unknown, maxBytes: number): void {
-  const serialized = JSON.stringify(value);
-  if (serialized === undefined) {
+  const byteLength = serializedByteLength(value);
+  if (byteLength === undefined) {
     throw new CodeSliceError("OUTPUT_LIMIT_EXCEEDED", "Result could not be serialized as JSON");
   }
-  const actualBytes = Buffer.byteLength(serialized, "utf8");
-  if (actualBytes > maxBytes) {
+  if (byteLength > maxBytes) {
     throw new CodeSliceError(
       "OUTPUT_LIMIT_EXCEEDED",
-      `Serialized result is ${actualBytes} bytes, exceeding the ${maxBytes}-byte output limit`,
+      `Serialized result is ${byteLength} bytes, exceeding the ${maxBytes}-byte output limit`,
     );
   }
 }

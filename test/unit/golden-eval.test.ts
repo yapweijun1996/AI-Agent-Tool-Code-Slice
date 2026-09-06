@@ -4,7 +4,7 @@ import { evaluateGoldenCases, loadGoldenCases, parseGoldenCase } from "../golden
 
 test("declarative Golden Eval cases pass through the public Core API", async () => {
   const cases = loadGoldenCases();
-  assert.equal(cases.length, 16);
+  assert.equal(cases.length, 19);
   assert.deepEqual(cases.map((goldenCase) => goldenCase.id), [...cases].map((goldenCase) => goldenCase.id).sort());
 
   const result = await evaluateGoldenCases(cases);
