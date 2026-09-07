@@ -38,6 +38,14 @@ function optionalKind(value: unknown, label: string): SymbolKind | undefined {
   return value as SymbolKind;
 }
 
+function optionalBoolean(value: unknown, label: string): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") {
+    throw new CodeSliceError("INVALID_ARGUMENT", `${label} must be a boolean`);
+  }
+  return value;
+}
+
 function optionalBoundedInteger(
   value: unknown,
   label: string,
@@ -71,10 +79,14 @@ export function validateOutlineParams(value: unknown): OutlineParams {
   const base = validateBaseParams(value);
   const kind = optionalKind(record.kind, "kind");
   const maxSymbols = record.maxSymbols === undefined ? undefined : normalizeMaxSymbols(record.maxSymbols);
+  const topLevel = optionalBoolean(record.topLevel, "topLevel");
+  const includeLocals = optionalBoolean(record.includeLocals, "includeLocals");
   return {
     ...base,
     ...(kind !== undefined ? { kind } : {}),
     ...(maxSymbols !== undefined ? { maxSymbols } : {}),
+    ...(topLevel !== undefined ? { topLevel } : {}),
+    ...(includeLocals !== undefined ? { includeLocals } : {}),
   };
 }
 
@@ -108,14 +120,19 @@ function validateSelector(value: unknown): Selector {
     if (startLine > endLine) {
       throw new CodeSliceError("RANGE_INVALID", "selector.startLine must be less than or equal to selector.endLine");
     }
-    if (record.expand !== undefined && typeof record.expand !== "boolean") {
-      throw new CodeSliceError("INVALID_ARGUMENT", "selector.expand must be a boolean");
+    const expand = optionalBoolean(record.expand, "selector.expand");
+    const smallest = optionalBoolean(record.smallest, "selector.smallest");
+    const clamp = optionalBoolean(record.clamp, "selector.clamp");
+    if (expand && smallest) {
+      throw new CodeSliceError("INVALID_ARGUMENT", "selector.expand and selector.smallest are mutually exclusive");
     }
     return {
       type,
       startLine,
       endLine,
-      ...(record.expand !== undefined ? { expand: record.expand } : {}),
+      ...(expand !== undefined ? { expand } : {}),
+      ...(smallest !== undefined ? { smallest } : {}),
+      ...(clamp !== undefined ? { clamp } : {}),
     };
   }
 
@@ -125,7 +142,12 @@ function validateSelector(value: unknown): Selector {
 export function validateSliceParams(value: unknown): SliceParams {
   const record = requireRecord(value, "request");
   const base = validateBaseParams(value);
-  return { ...base, selector: validateSelector(record.selector) };
+  const maxLines = optionalBoundedInteger(record.maxLines, "maxLines", 1, Number.MAX_SAFE_INTEGER);
+  return {
+    ...base,
+    selector: validateSelector(record.selector),
+    ...(maxLines !== undefined ? { maxLines } : {}),
+  };
 }
 
 export function fileForError(value: unknown): string | undefined {

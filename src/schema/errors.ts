@@ -25,6 +25,7 @@ export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface CodeSliceErrorOptions {
   recoverable?: boolean;
   candidates?: unknown[];
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -37,6 +38,7 @@ export class CodeSliceError extends Error {
   readonly code: ErrorCode;
   readonly recoverable: boolean;
   readonly candidates?: unknown[];
+  readonly details?: Record<string, unknown>;
 
   constructor(code: ErrorCode, message: string, options: CodeSliceErrorOptions = {}) {
     super(message);
@@ -44,5 +46,6 @@ export class CodeSliceError extends Error {
     this.code = code;
     this.recoverable = options.recoverable ?? false;
     this.candidates = options.candidates;
+    this.details = options.details;
   }
 }

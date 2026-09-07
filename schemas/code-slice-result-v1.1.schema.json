@@ -39,6 +39,9 @@
         },
         "candidates": {
           "type": "array"
+        },
+        "details": {
+          "type": "object"
         }
       },
       "additionalProperties": true

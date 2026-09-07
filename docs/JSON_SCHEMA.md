@@ -72,6 +72,28 @@ schemas/code-slice-result-v1.1.schema.json
 }
 ```
 
+## Structured recovery details
+
+Errors may include an optional `error.details` object. It is additive metadata
+for machine recovery and does not replace the stable `error.code`. For example,
+a range that overlaps the file but ends past EOF can return:
+
+```json
+{
+  "code": "RANGE_INVALID",
+  "recoverable": true,
+  "details": {
+    "requested": { "startLine": 10, "endLine": 90 },
+    "available": { "startLine": 1, "endLine": 89 },
+    "suggestion": { "startLine": 10, "endLine": 89 }
+  }
+}
+```
+
+`OUTPUT_LIMIT_EXCEEDED` from `maxLines` may similarly include the requested
+line budget, resolved line count, and resolved range. Consumers should branch
+on `error.code` first and treat `details` as optional recovery metadata.
+
 ## Error codes
 
 Current stable codes:
@@ -126,7 +148,8 @@ Warnings represent evidence such as:
 - recoverable parse errors;
 - dynamic symbol names;
 - partial mixed-language injection;
-- truncated outline.
+- truncated outline;
+- an explicitly clamped EOF range (`RANGE_CLAMPED`).
 
 Warnings must not silently convert a failed selector into a guessed success.
 

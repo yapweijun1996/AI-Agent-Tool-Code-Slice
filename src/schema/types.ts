@@ -68,7 +68,14 @@ export interface CodeSymbol {
 export type Selector =
   | { type: "symbol"; name: string; kind?: SymbolKind; occurrence?: number }
   | { type: "line"; line: number }
-  | { type: "range"; startLine: number; endLine: number; expand?: boolean };
+  | {
+      type: "range";
+      startLine: number;
+      endLine: number;
+      expand?: boolean;
+      smallest?: boolean;
+      clamp?: boolean;
+    };
 
 export interface LanguageCapability {
   id: string;

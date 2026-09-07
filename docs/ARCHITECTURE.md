@@ -134,10 +134,29 @@ Selectors:
 type Selector =
   | { type: "symbol"; name: string; kind?: string; occurrence?: number }
   | { type: "line"; line: number }
-  | { type: "range"; startLine: number; endLine: number; expand?: boolean };
+  | {
+      type: "range";
+      startLine: number;
+      endLine: number;
+      expand?: boolean;
+      smallest?: boolean;
+      clamp?: boolean;
+    };
 ```
 
 `occurrence` should not be used to hide ambiguity by default. It is an explicit disambiguator.
+Qualified `Owner.member` lookup remains normalized-IR selection: it filters a
+member by its immediate normalized parent name and still fails closed on
+ambiguity.
+
+`range.expand` selects the smallest supported normalized symbol/container.
+`range.smallest` is deliberately different: while the parser tree is still
+request-scoped, Core walks only the containment path and returns the smallest
+named syntax node as normalized `kind: "block"`. Its `nativeKind` is
+informational parser evidence, not a stable cross-grammar semantic kind;
+consumers should use `kind`, `range`, and `code` as the stable contract. This
+mode has no language-specific branch in Core and does not change adapter symbol
+extraction.
 
 ## Layer 5 — Delivery adapters
 
@@ -179,7 +198,10 @@ Core validates runtime requests before parsing. The default file budget is
 the default returned outline limit is 10,000 symbols and the extraction safety
 ceiling is 50,000 symbols. Core envelopes are checked against the default
 8 MiB serialized-output limit, which callers may lower to a minimum of 256
-bytes but may not raise. The limit covers both success and error envelopes.
+bytes but may not raise. Slice callers may also set `maxLines` to fail closed
+when the resolved code unit is larger than the requested context budget; Core
+never truncates the syntax unit to satisfy that budget. The serialized-output
+limit covers both success and error envelopes.
 
 Limits fail closed with `INVALID_ARGUMENT` for malformed values and
 `OUTPUT_LIMIT_EXCEEDED` when a valid operation or its error envelope cannot
