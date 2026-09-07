@@ -39,17 +39,39 @@ It is therefore evidence for the package integration boundary, not a
 Verified Codex/Claude/Gemini/OpenCode compatibility row. Vendor-specific live
 E2E requires an explicit opt-in run and remains tracked in the matrix below.
 
+## Shared Code Slice Skill
+
+The canonical cross-agent Skill is
+[`integrations/agent-code-slice/SKILL.md`](../integrations/agent-code-slice/SKILL.md).
+It contains the only workflow guidance: command selection, JSON handling,
+fail-closed behavior, fallback rules, and safety boundaries.
+
+Project discovery entrypoints are thin adapters:
+
+- Codex CLI: `.agents/skills/agent-code-slice/SKILL.md`
+- Claude Code: `.claude/skills/agent-code-slice/SKILL.md`
+
+For a different repository, copy the canonical Skill directory into the
+agent's project or user Skill directory. Codex project Skills use
+`.agents/skills/<name>/SKILL.md`; Claude Code project Skills use
+`.claude/skills/<name>/SKILL.md`.
+
+Both entrypoints call the installed `code-slice` executable. They must not
+duplicate parsing logic or automatically install packages. On Windows, use
+`code-slice.cmd` when PowerShell execution policy blocks the npm-generated
+`.ps1` shim.
+
 ## Codex CLI
 
-Planned progression:
+Integration progression:
 
 1. CLI:
    ```bash
    code-slice outline src/app.ts --compact --json
    code-slice symbol src/app.ts calculateTotal --json
    ```
-2. future serverless wrapper, once its provider and source-input contract are selected;
-3. `integrations/codex/SKILL.md` with usage policy.
+2. the project Skill entrypoint in `.agents/skills/agent-code-slice/SKILL.md`;
+3. future serverless wrapper, once its provider and source-input contract is selected.
 
 Recommended Skill behavior:
 
@@ -58,19 +80,22 @@ Recommended Skill behavior:
 - fall back to normal reads if unsupported/ambiguous;
 - never treat Code Slice output as proof of runtime behavior.
 
-Package CLI path: **Implemented**. Codex-version-specific live compatibility:
-**Planned**, not verified.
+Package CLI path: **Implemented**. Project Skill artifact: **Implemented**.
+Codex-version-specific live compatibility: **Planned**, not verified.
 
 ## Claude Code
 
-Primary: shell/CLI.
+Claude Code uses the same canonical Skill through the project entrypoint in
+`.claude/skills/agent-code-slice/SKILL.md`. Invoke it explicitly with
+`/agent-code-slice`, or let Claude Code select it when the task matches its
+description.
 
-Enhanced: future serverless wrapper or direct JS API, once implemented.
+The Skill uses only the shared `code-slice` CLI contract, so it remains
+portable across supported Claude Code surfaces. It does not use Claude-only
+dynamic context, hooks, subagents, or MCP connections.
 
-Keep permission requirements read-only where platform capabilities permit.
-
-Package CLI path: **Implemented**. Claude-version-specific live compatibility:
-**Planned**, not verified.
+Package CLI path: **Implemented**. Project Skill artifact: **Implemented**.
+Claude-version-specific live compatibility: **Planned**, not verified.
 
 ## Gemini CLI
 
