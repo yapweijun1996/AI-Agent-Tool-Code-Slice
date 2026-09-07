@@ -13,7 +13,13 @@ import {
   normalizeMaxSymbols,
   requestedMaxOutputBytesOrDefault,
 } from "./limits.js";
-import { resolveLineSelector, resolveRangeSelector, resolveSymbolSelector } from "./slice-engine.js";
+import {
+  normalizeRangeSelectorBounds,
+  resolveLineSelector,
+  resolveRangeSelector,
+  resolveSmallestSyntaxSelector,
+  resolveSymbolSelector,
+} from "./slice-engine.js";
 import { buildCapabilities } from "./capabilities.js";
 import { fileForError, validateOutlineParams, validateSliceParams } from "./validation.js";
 import type { Operation } from "../schema/envelope.js";
@@ -37,10 +43,16 @@ export interface FileParams {
 export interface OutlineParams extends FileParams {
   kind?: SymbolKind;
   maxSymbols?: number;
+  /** Return only symbols without a normalized parent. */
+  topLevel?: boolean;
+  /** Include symbols nested inside functions/methods; defaults to false for agent-focused outlines. */
+  includeLocals?: boolean;
 }
 
 export interface SliceParams extends FileParams {
   selector: Selector;
+  /** Fail closed when the resolved slice spans more than this many lines. */
+  maxLines?: number;
 }
 
 /** `result` payload for a single resolved symbol: the CodeSymbol fields (minus `language`, reported at the envelope's top level) plus the exact code text. */
@@ -57,7 +69,10 @@ function outlinePayload(symbol: CodeSymbol) {
   return rest;
 }
 
-async function loadAndExtract(params: FileParams) {
+async function loadAndExtract(
+  params: FileParams,
+  smallestSelector?: Extract<Selector, { type: "range" }>,
+) {
   const loaded = loadFile(params.file, { root: params.root, maxBytes: params.maxBytes });
   const adapter = params.language ? getAdapterById(params.language) : detectAdapter(loaded.requestedPath);
   if (!adapter) {
@@ -75,6 +90,9 @@ async function loadAndExtract(params: FileParams) {
       engine,
       symbolBudget: createSymbolBudget(),
     });
+    const smallestSyntax = smallestSelector
+      ? resolveSmallestSyntaxSelector(tree.rootNode, smallestSelector, sourceIndex, adapter.id)
+      : undefined;
 
     const warnings: Diagnostic[] = hadError
       ? [
@@ -86,7 +104,7 @@ async function loadAndExtract(params: FileParams) {
         ]
       : [];
 
-    return { adapter, symbols, sourceIndex, warnings, loaded };
+    return { adapter, symbols, sourceIndex, warnings, loaded, smallestSyntax };
   });
 }
 
@@ -101,6 +119,11 @@ export async function capabilities(): Promise<ResultEnvelope> {
   }
 }
 
+function isLocalSymbol(symbol: CodeSymbol): boolean {
+  const nestedInCallable = symbol.parent?.kind === "function" || symbol.parent?.kind === "method";
+  return nestedInCallable && (symbol.kind === "variable" || symbol.kind === "function");
+}
+
 export async function outline(params: OutlineParams): Promise<ResultEnvelope> {
   const outputBudget = requestedMaxOutputBytesOrDefault(params);
   try {
@@ -108,7 +131,9 @@ export async function outline(params: OutlineParams): Promise<ResultEnvelope> {
     const maxSymbols = normalizeMaxSymbols(validated.maxSymbols);
     const maxOutputBytes = normalizeMaxOutputBytes(validated.maxOutputBytes);
     const { adapter, symbols, warnings, loaded } = await loadAndExtract(validated);
-    let filtered = validated.kind ? symbols.filter((s) => s.kind === validated.kind) : symbols;
+    let filtered = validated.includeLocals ? symbols : symbols.filter((s) => !isLocalSymbol(s));
+    if (validated.topLevel) filtered = filtered.filter((s) => s.parent == null);
+    if (validated.kind) filtered = filtered.filter((s) => s.kind === validated.kind);
     filtered = [...filtered].sort((a, b) => a.range.startByte - b.range.startByte);
 
     const truncated = filtered.length > maxSymbols;
@@ -144,7 +169,12 @@ export async function slice(params: SliceParams): Promise<ResultEnvelope> {
   try {
     const validated = validateSliceParams(params);
     const maxOutputBytes = normalizeMaxOutputBytes(validated.maxOutputBytes);
-    const { adapter, symbols, sourceIndex, warnings, loaded } = await loadAndExtract(validated);
+    const smallestSelector =
+      validated.selector.type === "range" && validated.selector.smallest ? validated.selector : undefined;
+    const { adapter, symbols, sourceIndex, warnings, loaded, smallestSyntax } = await loadAndExtract(
+      validated,
+      smallestSelector,
+    );
 
     let resolved: CodeSymbol;
     switch (validated.selector.type) {
@@ -155,10 +185,42 @@ export async function slice(params: SliceParams): Promise<ResultEnvelope> {
         resolved = resolveLineSelector(symbols, validated.selector, sourceIndex, adapter.id);
         break;
       case "range":
-        resolved = resolveRangeSelector(symbols, validated.selector, sourceIndex, adapter.id);
+        resolved = validated.selector.smallest
+          ? (smallestSyntax ?? resolveRangeSelector(symbols, validated.selector, sourceIndex, adapter.id))
+          : resolveRangeSelector(symbols, validated.selector, sourceIndex, adapter.id);
         break;
       default:
         throw new CodeSliceError("INVALID_ARGUMENT", "selector.type is unsupported");
+    }
+
+    if (validated.maxLines !== undefined) {
+      const lineCount = resolved.range.endLine - resolved.range.startLine + 1;
+      if (lineCount > validated.maxLines) {
+        throw new CodeSliceError(
+          "OUTPUT_LIMIT_EXCEEDED",
+          `Resolved slice spans ${lineCount} line(s), exceeding maxLines=${validated.maxLines}.`,
+          {
+            recoverable: true,
+            details: {
+              maxLines: validated.maxLines,
+              resolvedLines: lineCount,
+              range: resolved.range,
+            },
+          },
+        );
+      }
+    }
+
+    const allWarnings = [...warnings];
+    if (validated.selector.type === "range" && validated.selector.clamp) {
+      const bounds = normalizeRangeSelectorBounds(validated.selector, sourceIndex);
+      if (bounds.clamped) {
+        allWarnings.push({
+          code: "RANGE_CLAMPED",
+          message: `Requested range ${validated.selector.startLine}:${validated.selector.endLine} was clamped to ${bounds.startLine}:${bounds.endLine}.`,
+          severity: "warning",
+        });
+      }
     }
 
     const envelope = buildSuccessEnvelope({
@@ -166,7 +228,7 @@ export async function slice(params: SliceParams): Promise<ResultEnvelope> {
       file: loaded.requestedPath,
       language: adapter.id,
       result: slicePayload(resolved, sourceIndex),
-      warnings,
+      warnings: allWarnings,
     });
     return finalizeResultEnvelope(envelope, maxOutputBytes);
   } catch (err) {

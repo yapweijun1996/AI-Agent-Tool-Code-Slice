@@ -8,6 +8,14 @@ The project follows semantic versioning.
 
 ### Added
 
+- Added agent-focused navigation controls from real coding-agent usage: qualified
+  `Owner.member` symbol selection, `outline --top-level`, opt-in
+  `--include-locals`, `range --smallest`, per-slice `--max-lines`, structured
+  invalid-range recovery details, and safe EOF-only `range --clamp`.
+- Added regression and agent-facing E2E coverage for large-class member
+  selection, local-outline noise control, syntax-node range narrowing, line
+  budgets, and recoverable range suggestions.
+
 - Expanded the deterministic benchmark cohort to all current host adapters and
   the 5 KB, 50 KB, 500 KB, and 1 MB fixtures, with engine-phase, cold CLI,
   warm API, output-reduction, RSS, grammar-hash, and fixture-hash evidence.
@@ -21,6 +29,10 @@ The project follows semantic versioning.
 
 ### Changed
 
+- `outline` now hides variable/function declarations nested directly under a
+  function or method by default to reduce agent context noise;
+  `includeLocals: true` / `--include-locals` restores them. Structural nested
+  symbols such as CFML queries remain visible.
 - Scoped Tree-sitter parser/tree ownership to `ParserEngine.withParse()` and
   release the native tree on both successful and throwing extraction paths.
 - Added runtime request validation and bounded file, symbol, and serialized
@@ -54,10 +66,10 @@ three Node 20 benchmark jobs. The registry-install job was skipped because
 this commit was not published; public-registry installation remains covered
 by the separate `0.2.0` release evidence above.
 
-The BOM, line/range, and error-envelope changes in this Unreleased section
-have passed local verification with 64 unit tests, 19 Golden Eval cases, 3
-agent-facing E2E cases, and 8 grammar integrity checks. Cross-platform CI
-evidence for these changes is pending.
+The current Unreleased changes have passed local verification with typecheck,
+build, 73 unit tests, 19 Golden Eval cases, 4 agent-facing E2E cases, all 8
+grammar integrity checks, and `npm pack --dry-run`. Cross-platform CI evidence
+for these newest navigation changes is pending.
 
 ## [0.2.0] - 2026-09-05
 

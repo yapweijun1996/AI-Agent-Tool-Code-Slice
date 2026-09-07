@@ -31,6 +31,7 @@ export interface ErrorEnvelope {
     message: string;
     recoverable: boolean;
     candidates?: unknown[];
+    details?: Record<string, unknown>;
   };
   warnings: Diagnostic[];
 }
@@ -47,6 +48,7 @@ export interface CliErrorEnvelope {
     message: string;
     recoverable: boolean;
     candidates?: unknown[];
+    details?: Record<string, unknown>;
   };
   warnings: Diagnostic[];
 }
@@ -88,6 +90,7 @@ export function buildErrorEnvelope(params: {
       message: params.error.message,
       recoverable: params.error.recoverable,
       ...(params.error.candidates !== undefined ? { candidates: params.error.candidates } : {}),
+      ...(params.error.details !== undefined ? { details: params.error.details } : {}),
     },
     warnings: params.warnings ?? [],
   };
@@ -106,6 +109,7 @@ export function buildCliErrorEnvelope(error: CodeSliceError): CliErrorEnvelope {
       message: error.message,
       recoverable: error.recoverable,
       ...(error.candidates !== undefined ? { candidates: error.candidates } : {}),
+      ...(error.details !== undefined ? { details: error.details } : {}),
     },
     warnings: [],
   };

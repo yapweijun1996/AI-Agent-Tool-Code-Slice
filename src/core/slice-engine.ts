@@ -1,3 +1,4 @@
+import type { Node } from "web-tree-sitter";
 import type { SourceIndex } from "../schema/coordinates.js";
 import type { CodeSymbol, Selector } from "../schema/types.js";
 import { CodeSliceError } from "../schema/errors.js";
@@ -13,17 +14,31 @@ const MAX_AMBIGUOUS_CANDIDATES = 20;
  */
 
 function candidateOf(symbol: CodeSymbol) {
-  return { kind: symbol.kind, name: symbol.name, range: symbol.range };
+  return {
+    kind: symbol.kind,
+    name: symbol.name,
+    range: symbol.range,
+    ...(symbol.parent ? { parent: symbol.parent } : {}),
+  };
+}
+
+function splitQualifiedName(name: string): { owner: string; member: string } | undefined {
+  const dot = name.lastIndexOf(".");
+  if (dot <= 0 || dot >= name.length - 1) return undefined;
+  return { owner: name.slice(0, dot), member: name.slice(dot + 1) };
 }
 
 export function resolveSymbolSelector(
   symbols: CodeSymbol[],
   selector: Extract<Selector, { type: "symbol" }>,
 ): CodeSymbol {
-  const matches = symbols
-    .filter((s) => s.name === selector.name)
-    .filter((s) => (selector.kind ? s.kind === selector.kind : true))
-    .sort((a, b) => a.range.startByte - b.range.startByte);
+  const eligible = symbols.filter((s) => (selector.kind ? s.kind === selector.kind : true));
+  const exactMatches = eligible.filter((s) => s.name === selector.name);
+  const qualified = exactMatches.length === 0 ? splitQualifiedName(selector.name) : undefined;
+  const matches = (qualified
+    ? eligible.filter((s) => s.name === qualified.member && s.parent?.name === qualified.owner)
+    : exactMatches
+  ).sort((a, b) => a.range.startByte - b.range.startByte);
 
   if (matches.length === 0) {
     throw new CodeSliceError("SYMBOL_NOT_FOUND", `No symbol named "${selector.name}" was found.`);
@@ -94,26 +109,67 @@ export function resolveLineSelector(
   return best ?? wholeFileContainer(sourceIndex, language);
 }
 
+export interface NormalizedRangeBounds {
+  startLine: number;
+  endLine: number;
+  clamped: boolean;
+}
+
+export function normalizeRangeSelectorBounds(
+  selector: Extract<Selector, { type: "range" }>,
+  sourceIndex: SourceIndex,
+): NormalizedRangeBounds {
+  const { startLine, endLine } = selector;
+  const available = { startLine: 1, endLine: sourceIndex.lineCount };
+
+  if (startLine < 1 || endLine < 1 || startLine > endLine || startLine > sourceIndex.lineCount) {
+    const suggestion =
+      startLine >= 1 && startLine <= sourceIndex.lineCount
+        ? { startLine, endLine: Math.min(Math.max(endLine, startLine), sourceIndex.lineCount) }
+        : undefined;
+    throw new CodeSliceError(
+      "RANGE_INVALID",
+      `Range ${startLine}:${endLine} is invalid for a file with ${sourceIndex.lineCount} line(s).`,
+      {
+        recoverable: suggestion !== undefined,
+        details: {
+          requested: { startLine, endLine },
+          available,
+          ...(suggestion ? { suggestion } : {}),
+        },
+      },
+    );
+  }
+
+  if (endLine > sourceIndex.lineCount) {
+    const suggestion = { startLine, endLine: sourceIndex.lineCount };
+    if (selector.clamp) {
+      return { ...suggestion, clamped: true };
+    }
+    throw new CodeSliceError(
+      "RANGE_INVALID",
+      `Range ${startLine}:${endLine} is invalid for a file with ${sourceIndex.lineCount} line(s).`,
+      {
+        recoverable: true,
+        details: {
+          requested: { startLine, endLine },
+          available,
+          suggestion,
+        },
+      },
+    );
+  }
+
+  return { startLine, endLine, clamped: false };
+}
+
 export function resolveRangeSelector(
   symbols: CodeSymbol[],
   selector: Extract<Selector, { type: "range" }>,
   sourceIndex: SourceIndex,
   language: string,
 ): CodeSymbol {
-  const { startLine, endLine } = selector;
-  if (
-    startLine < 1 ||
-    endLine < 1 ||
-    startLine > sourceIndex.lineCount ||
-    endLine > sourceIndex.lineCount ||
-    startLine > endLine
-  ) {
-    throw new CodeSliceError(
-      "RANGE_INVALID",
-      `Range ${startLine}:${endLine} is invalid for a file with ${sourceIndex.lineCount} line(s).`,
-    );
-  }
-
+  const { startLine, endLine } = normalizeRangeSelectorBounds(selector, sourceIndex);
   const range = sourceIndex.lineRange(startLine, endLine);
 
   if (!selector.expand) {
@@ -131,4 +187,49 @@ export function resolveRangeSelector(
   const pool = [...symbols, wholeFileContainer(sourceIndex, language)];
   const best = smallestContaining(pool, contentRange.startByte, contentRange.endByte);
   return best ?? wholeFileContainer(sourceIndex, language);
+}
+
+/**
+ * Finds the smallest named Tree-sitter node that contains the meaningful
+ * content of a requested line range. Unlike --expand, this is syntax-node
+ * navigation rather than normalized-symbol navigation, so it can return a
+ * statement/block inside a large method or class without inventing a symbol.
+ */
+export function resolveSmallestSyntaxSelector(
+  root: Node,
+  selector: Extract<Selector, { type: "range" }>,
+  sourceIndex: SourceIndex,
+  language: string,
+): CodeSymbol {
+  const { startLine, endLine } = normalizeRangeSelectorBounds(selector, sourceIndex);
+  const target = sourceIndex.contentByteRangeForLines(startLine, endLine);
+  let best: Node | undefined;
+  let bestSize = Number.POSITIVE_INFINITY;
+
+  function visit(node: Node): void {
+    for (const child of node.namedChildren) {
+      if (!child) continue;
+      const range = sourceIndex.toSourceRange(child);
+      if (range.startByte <= target.startByte && range.endByte >= target.endByte) {
+        const size = range.endByte - range.startByte;
+        if (size < bestSize) {
+          best = child;
+          bestSize = size;
+        }
+        visit(child);
+      }
+    }
+  }
+
+  visit(root);
+  if (!best) return wholeFileContainer(sourceIndex, language);
+
+  return {
+    kind: "block",
+    nativeKind: best.type,
+    name: null,
+    language,
+    range: sourceIndex.toSourceRange(best),
+    parent: null,
+  };
 }

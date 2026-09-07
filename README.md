@@ -55,26 +55,37 @@ If you are an AI coding agent and `code-slice` is installed (`npm install -D age
 # What can this tool do, and what languages does it support?
 code-slice capabilities --json
 
-# What's in this file? (bounded list of symbols: kind, name, range, signature)
+# What's in this file? Local declarations are hidden by default.
 code-slice outline src/app.ts --json
+
+# For a high-level map only.
+code-slice outline src/app.ts --top-level --json
 
 # Give me exactly this function/method/class/query — nothing else.
 code-slice symbol src/app.ts calculateTotal --json
 
+# Disambiguate a large class directly by owner + member.
+code-slice symbol src/oauth.ts OwnerOAuthProvider.commit --max-lines 120 --json
+
 # A stack trace or lint error points at a line — what's the enclosing unit?
 code-slice line src/app.ts 382 --json
 
-# I know roughly where, but not the exact boundaries — expand to a container.
+# I know roughly where, but not the exact boundaries — expand to a normalized symbol.
 code-slice range src/app.ts 380:390 --expand --json
+
+# Stay local inside a large method/class using the smallest named syntax node.
+code-slice range src/oauth.ts 920:940 --smallest --max-lines 120 --json
 ```
 
 Every command above prints **exactly one JSON document to stdout** when `--json` is passed (Core results use `schemas/code-slice-result-v1.schema.json`; CLI usage errors use the additive `schemas/code-slice-result-v1.1.schema.json`, both described in `docs/JSON_SCHEMA.md`) — safe to pipe and parse directly, e.g. `code-slice symbol src/app.ts calculateTotal --json | jq -r .result.code`. Diagnostics go to stderr, never stdout.
 
-Read `result.code` for the exact text; do not re-derive it from `result.range` yourself. On failure, check `error.code` (stable values like `SYMBOL_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_UNSUPPORTED` — full list in `docs/JSON_SCHEMA.md`) rather than parsing `error.message`, and fall back to reading the file normally — this tool never guesses a symbol, language, or boundary, so an error here is real signal, not a bug to route around. `SYMBOL_AMBIGUOUS` includes bounded `candidates`; either narrow with `--kind` or pick one and say which.
+Read `result.code` for the exact text; do not re-derive it from `result.range` yourself. On failure, check `error.code` (stable values like `SYMBOL_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_UNSUPPORTED` — full list in `docs/JSON_SCHEMA.md`) rather than parsing `error.message`, and fall back to reading the file normally — this tool never guesses a symbol, language, or boundary, so an error here is real signal, not a bug to route around. `SYMBOL_AMBIGUOUS` includes bounded `candidates`; either narrow with `--kind`, use a qualified `Owner.member` name when the parent is known, or pick a candidate and say which. `RANGE_INVALID` may include structured `error.details.suggestion`; `--clamp` only applies a safe overlapping end-of-file suggestion.
+
+`code-slice` is navigation, not correctness proof. A good coding-agent loop is: **code-slice → understand the target code → run the focused typecheck/test/runtime check → run the broader regression suite**. It does not validate filesystem semantics, network results, permissions, database transactions, or business correctness by itself.
 
 From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
 
-**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, and serialized-output budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
+**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, serialized-output, and optional slice-line budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, `maxLines` can bound a resolved slice without truncating it, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
 
 ## Product principles
 
@@ -109,10 +120,10 @@ See [docs/LANGUAGE_SUPPORT_MATRIX.md](docs/LANGUAGE_SUPPORT_MATRIX.md).
 
 ```bash
 code-slice capabilities --json
-code-slice outline src/app.ts --json
-code-slice symbol src/app.ts calculateTotal --json
-code-slice line src/app.ts 382 --json
-code-slice range src/app.ts 380:390 --expand --json
+code-slice outline src/app.ts --top-level --json
+code-slice symbol src/app.ts OwnerOAuthProvider.commit --max-lines 120 --json
+code-slice line src/app.ts 382 --max-lines 80 --json
+code-slice range src/app.ts 380:390 --smallest --max-lines 120 --json
 ```
 
 For machine consumers:

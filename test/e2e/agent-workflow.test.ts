@@ -261,3 +261,91 @@ test("agent-facing CLI rejects malformed arguments with JSON-clean, machine-read
   assert.equal(record(boundedEnvelope.error, "bounded output error.error").code, "OUTPUT_LIMIT_EXCEEDED");
   assert.ok(Buffer.byteLength(JSON.stringify(boundedEnvelope), "utf8") <= MIN_OUTPUT_BYTES);
 });
+
+test("agent-facing CLI narrows large-class navigation with qualified members and syntax ranges", (testContext) => {
+  const root = createWorkspace(testContext, [
+    { source: "test/fixtures/typescript/navigation.ts", destination: "src/navigation.ts" },
+  ]);
+  const before = snapshotWorkspace(root);
+
+  const qualified = runCli(root, [
+    "symbol",
+    "src/navigation.ts",
+    "OwnerOAuthProvider.commit",
+    "--root",
+    root,
+    "--max-lines",
+    "10",
+    "--json",
+  ]);
+  assert.equal(qualified.status, 0);
+  const qualifiedResult = successResult(parseJsonEnvelope(qualified, "qualified member"), "qualified member");
+  assert.equal(qualifiedResult.kind, "method");
+  assert.match(String(qualifiedResult.code), /^commit\(value: string\)/);
+
+  const topLevel = runCli(root, ["outline", "src/navigation.ts", "--root", root, "--top-level", "--json"]);
+  assert.equal(topLevel.status, 0);
+  const topLevelResult = successResult(parseJsonEnvelope(topLevel, "top-level outline"), "top-level outline");
+  const topNames = (topLevelResult.symbols as unknown[]).map((symbol) => record(symbol, "top-level symbol").name);
+  assert.ok(topNames.includes("OwnerOAuthProvider"));
+  assert.ok(!topNames.includes("normalized"));
+
+  const withLocals = runCli(root, ["outline", "src/navigation.ts", "--root", root, "--include-locals", "--json"]);
+  assert.equal(withLocals.status, 0);
+  const withLocalsResult = successResult(parseJsonEnvelope(withLocals, "outline with locals"), "outline with locals");
+  const localNames = (withLocalsResult.symbols as unknown[]).map((symbol) => record(symbol, "local symbol").name);
+  assert.ok(localNames.includes("normalized"));
+  assert.ok(localNames.includes("audit"));
+
+  const tooLarge = runCli(root, [
+    "symbol",
+    "src/navigation.ts",
+    "OwnerOAuthProvider",
+    "--root",
+    root,
+    "--max-lines",
+    "5",
+    "--json",
+  ]);
+  assert.equal(tooLarge.status, 8);
+  const tooLargeEnvelope = parseJsonEnvelope(tooLarge, "max-lines failure");
+  assert.equal(record(tooLargeEnvelope.error, "max-lines failure.error").code, "OUTPUT_LIMIT_EXCEEDED");
+
+  const smallest = runCli(root, [
+    "range",
+    "src/navigation.ts",
+    "6:9",
+    "--root",
+    root,
+    "--smallest",
+    "--max-lines",
+    "4",
+    "--json",
+  ]);
+  assert.equal(smallest.status, 0);
+  const smallestResult = successResult(parseJsonEnvelope(smallest, "smallest range"), "smallest range");
+  assert.equal(smallestResult.nativeKind, "if_statement");
+
+  const beyondEof = runCli(root, ["range", "src/navigation.ts", "20:999", "--root", root, "--json"]);
+  assert.equal(beyondEof.status, 6);
+  const beyondEnvelope = parseJsonEnvelope(beyondEof, "range suggestion");
+  const beyondError = record(beyondEnvelope.error, "range suggestion.error");
+  assert.equal(beyondError.code, "RANGE_INVALID");
+  const details = record(beyondError.details, "range suggestion.details");
+  assert.ok(record(details.suggestion, "range suggestion.details.suggestion").endLine);
+
+  const invalidClamp = runCli(root, ["range", "src/navigation.ts", "999:1000", "--root", root, "--clamp", "--json"]);
+  assert.equal(invalidClamp.status, 6);
+  const invalidClampEnvelope = parseJsonEnvelope(invalidClamp, "invalid clamp");
+  assert.equal(record(invalidClampEnvelope.error, "invalid clamp.error").code, "RANGE_INVALID");
+
+  const clamped = runCli(root, ["range", "src/navigation.ts", "20:999", "--root", root, "--clamp", "--json"]);
+  assert.equal(clamped.status, 0);
+  const clampedEnvelope = parseJsonEnvelope(clamped, "clamped range");
+  assert.equal(clampedEnvelope.ok, true);
+  assert.ok(
+    (clampedEnvelope.warnings as unknown[]).some((warning) => record(warning, "clamp warning").code === "RANGE_CLAMPED"),
+  );
+
+  assert.equal(snapshotWorkspace(root), before, "precision navigation workflow modified the authorized workspace");
+});

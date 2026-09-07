@@ -42,14 +42,54 @@ interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
-const BOOLEAN_FLAGS = new Set(["json", "expand", "debug", "version", "help"]);
-const VALUE_FLAGS = new Set(["kind", "max-symbols", "max-output-bytes", "language", "root", "max-bytes"]);
+const BOOLEAN_FLAGS = new Set([
+  "json",
+  "expand",
+  "smallest",
+  "clamp",
+  "top-level",
+  "include-locals",
+  "debug",
+  "version",
+  "help",
+]);
+const VALUE_FLAGS = new Set([
+  "kind",
+  "max-symbols",
+  "max-output-bytes",
+  "max-lines",
+  "language",
+  "root",
+  "max-bytes",
+]);
 const ALLOWED_FLAGS_BY_COMMAND: Record<string, ReadonlySet<string>> = {
   capabilities: new Set(["json", "debug"]),
-  outline: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "kind", "max-symbols"]),
-  symbol: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "kind"]),
-  line: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes"]),
-  range: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "expand"]),
+  outline: new Set([
+    "json",
+    "debug",
+    "language",
+    "root",
+    "max-bytes",
+    "max-output-bytes",
+    "kind",
+    "max-symbols",
+    "top-level",
+    "include-locals",
+  ]),
+  symbol: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "max-lines", "kind"]),
+  line: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "max-lines"]),
+  range: new Set([
+    "json",
+    "debug",
+    "language",
+    "root",
+    "max-bytes",
+    "max-output-bytes",
+    "max-lines",
+    "expand",
+    "smallest",
+    "clamp",
+  ]),
 };
 const POSITIONAL_COUNTS: Record<string, number> = {
   capabilities: 0,
@@ -122,10 +162,10 @@ const HELP_TEXT = `code-slice — precise, language-aware code context for AI co
 
 Usage:
   code-slice capabilities [--json]
-  code-slice outline <file> [--kind <kind>] [--max-symbols <n>] [--language <id>] [--json]
-  code-slice symbol <file> <name> [--kind <kind>] [--json]
-  code-slice line <file> <line> [--json]
-  code-slice range <file> <start:end> [--expand] [--json]
+  code-slice outline <file> [--top-level] [--include-locals] [--kind <kind>] [--max-symbols <n>] [--json]
+  code-slice symbol <file> <name|Owner.member> [--kind <kind>] [--max-lines <n>] [--json]
+  code-slice line <file> <line> [--max-lines <n>] [--json]
+  code-slice range <file> <start:end> [--expand|--smallest] [--clamp] [--max-lines <n>] [--json]
 
 Global flags:
   --json            Emit exactly one JSON document to stdout; diagnostics go to stderr.
@@ -134,6 +174,11 @@ Global flags:
   --max-bytes <n>   Reject files larger than <n> bytes.
   --max-output-bytes <n>
                     Reject serialized envelopes larger than <n> bytes (256..8388608).
+  --max-lines <n>   Fail closed if a resolved symbol/line/range slice exceeds <n> lines.
+  --top-level       Outline only symbols without a normalized parent.
+  --include-locals  Include symbols nested inside functions/methods in outline output.
+  --smallest        Range mode: use the smallest containing named syntax node.
+  --clamp           Range mode: clamp an overlapping end beyond EOF to the last line.
   --debug           Reserved; currently a no-op.
   --version         Print the package version and exit.
   --help            Print this help and exit.
@@ -150,6 +195,9 @@ function printEnvelope(envelope: DeliveryEnvelope, json: boolean): void {
     process.stderr.write(`error: ${envelope.error.code}: ${envelope.error.message}\n`);
     if (envelope.error.candidates) {
       process.stderr.write(JSON.stringify(envelope.error.candidates, null, 2) + "\n");
+    }
+    if (envelope.error.details) {
+      process.stderr.write(JSON.stringify(envelope.error.details, null, 2) + "\n");
     }
     return;
   }
@@ -201,6 +249,9 @@ function printCliUsageError(error: CliUsageError | CodeSliceError, json: boolean
   if (envelope.error.candidates) {
     process.stderr.write(JSON.stringify(envelope.error.candidates, null, 2) + "\n");
   }
+  if (envelope.error.details) {
+    process.stderr.write(JSON.stringify(envelope.error.details, null, 2) + "\n");
+  }
   return envelope;
 }
 
@@ -244,6 +295,8 @@ async function run(): Promise<number> {
       typeof parsed.flags["max-output-bytes"] === "string"
         ? parseIntArg("max-output-bytes", parsed.flags["max-output-bytes"])
         : undefined;
+    const maxLines =
+      typeof parsed.flags["max-lines"] === "string" ? parseIntArg("max-lines", parsed.flags["max-lines"]) : undefined;
     const kind = parseKindArg(parsed.flags.kind);
 
     switch (parsed.command) {
@@ -257,7 +310,17 @@ async function run(): Promise<number> {
         if (!file) throw new CliUsageError("outline requires <file>");
         const maxSymbols =
           typeof parsed.flags["max-symbols"] === "string" ? parseIntArg("max-symbols", parsed.flags["max-symbols"]) : undefined;
-        const envelope = await outline({ file, root, language, maxBytes, maxOutputBytes, kind, maxSymbols });
+        const envelope = await outline({
+          file,
+          root,
+          language,
+          maxBytes,
+          maxOutputBytes,
+          kind,
+          maxSymbols,
+          topLevel: Boolean(parsed.flags["top-level"]),
+          includeLocals: Boolean(parsed.flags["include-locals"]),
+        });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -265,7 +328,7 @@ async function run(): Promise<number> {
         const [file, name] = parsed.positional;
         if (!file || !name) throw new CliUsageError("symbol requires <file> <name>");
         const selector: Selector = { type: "symbol", name, ...(kind ? { kind } : {}) };
-        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, maxLines, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -273,7 +336,7 @@ async function run(): Promise<number> {
         const [file, lineStr] = parsed.positional;
         if (!file || !lineStr) throw new CliUsageError("line requires <file> <line>");
         const selector: Selector = { type: "line", line: parseIntArg("line", lineStr) };
-        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, maxLines, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }
@@ -281,8 +344,18 @@ async function run(): Promise<number> {
         const [file, rangeStr] = parsed.positional;
         if (!file || !rangeStr) throw new CliUsageError("range requires <file> <start:end>");
         const { startLine, endLine } = parseRange(rangeStr);
-        const selector: Selector = { type: "range", startLine, endLine, expand: Boolean(parsed.flags.expand) };
-        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, selector });
+        if (parsed.flags.expand && parsed.flags.smallest) {
+          throw new CliUsageError("--expand and --smallest are mutually exclusive");
+        }
+        const selector: Selector = {
+          type: "range",
+          startLine,
+          endLine,
+          expand: Boolean(parsed.flags.expand),
+          smallest: Boolean(parsed.flags.smallest),
+          clamp: Boolean(parsed.flags.clamp),
+        };
+        const envelope = await slice({ file, root, language, maxBytes, maxOutputBytes, maxLines, selector });
         printEnvelope(envelope, json);
         return exitCodeFor(envelope);
       }

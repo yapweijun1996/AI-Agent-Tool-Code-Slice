@@ -33,7 +33,7 @@ Returns supported operations, languages, extensions, parser engine, and schema v
 ### outline
 
 ```bash
-code-slice outline <file> [--json]
+code-slice outline <file> [--top-level] [--include-locals] [--json]
 ```
 
 Options:
@@ -45,8 +45,16 @@ Options:
 --root <path>
 --max-bytes <n>
 --max-output-bytes <n>
+--top-level
+--include-locals
 --json
 ```
+
+By default, `outline` suppresses local variable/function declarations nested
+inside functions or methods so the structural inventory stays useful to an
+agent. Class methods, CFML queries, and other non-local structural symbols are
+not hidden. `--include-locals` restores those callable-local declarations.
+`--top-level` returns only symbols whose normalized `parent` is null.
 
 `--max-symbols` is a safe integer from `0` through `50,000`; the default
 outline result is limited to `10,000` entries and reports `OUTLINE_TRUNCATED`
@@ -58,8 +66,13 @@ narrow that ceiling to a minimum of 256 bytes. Invalid values fail closed with
 ### symbol
 
 ```bash
-code-slice symbol <file> <name> [--kind <kind>] [--json]
+code-slice symbol <file> <name|Owner.member> [--kind <kind>] [--max-lines <n>] [--json]
 ```
+
+A one-level qualified name such as `OwnerOAuthProvider.commit` is an additive
+fallback: an exact literal symbol name wins first; otherwise the selector
+filters a member by its normalized parent name before ambiguity resolution. It
+does not guess a member when multiple matches still make the result ambiguous.
 
 If multiple candidates match and no deterministic disambiguator exists:
 
@@ -70,7 +83,7 @@ If multiple candidates match and no deterministic disambiguator exists:
 ### line
 
 ```bash
-code-slice line <file> <line> [--json]
+code-slice line <file> <line> [--max-lines <n>] [--json]
 ```
 
 Returns the minimal supported enclosing code unit.
@@ -78,11 +91,27 @@ Returns the minimal supported enclosing code unit.
 ### range
 
 ```bash
-code-slice range <file> <start:end> [--expand] [--json]
+code-slice range <file> <start:end> [--expand|--smallest] [--clamp] [--max-lines <n>] [--json]
 ```
 
-Without `--expand`, returns the exact requested text. With `--expand`, returns
-the minimal supported enclosing container.
+Without `--expand` or `--smallest`, returns the exact requested text. With
+`--expand`, returns the minimal enclosing normalized symbol/container. With
+`--smallest`, returns the smallest named Tree-sitter syntax node containing
+the meaningful requested content; the result uses `kind: "block"` and exposes
+the current parser node type in `nativeKind`. `nativeKind` is informational
+and may change with a pinned grammar upgrade; stable consumers should branch
+on normalized `kind` and use `range`/`code`. `--expand` and `--smallest` are
+mutually exclusive.
+
+If an overlapping range ends beyond EOF, the default remains fail-closed with
+`RANGE_INVALID`. The error includes structured `details.requested`,
+`details.available`, and (when safe) `details.suggestion`. `--clamp` applies
+that safe EOF-end suggestion and emits `RANGE_CLAMPED`; it does not invent a
+range when the requested start is itself outside the file.
+
+For `symbol`, `line`, and `range`, `--max-lines <n>` fails closed with
+`OUTPUT_LIMIT_EXCEEDED` when the resolved slice would exceed the line budget.
+It never truncates source text or returns a syntactically partial symbol.
 
 ## Global flags
 
@@ -165,7 +194,9 @@ CLI commands must not format, rewrite, or modify source files.
 
 ```bash
 code-slice symbol app.py calculate_total --json
+code-slice symbol src/oauth.ts OwnerOAuthProvider.commit --max-lines 120 --json
 code-slice symbol invoice.cfm qInvoice --kind query --json
-code-slice line src/service.ts 382 --json
-code-slice outline src/service.ts --max-symbols 500 --max-output-bytes 2000000 --json
+code-slice line src/service.ts 382 --max-lines 80 --json
+code-slice range src/oauth.ts 920:940 --smallest --max-lines 120 --json
+code-slice outline src/service.ts --top-level --max-symbols 500 --max-output-bytes 2000000 --json
 ```

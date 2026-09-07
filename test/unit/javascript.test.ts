@@ -176,12 +176,12 @@ test("syntax-shaped text inside comments, strings, and template literals is neve
   if (!envelope.ok) return;
   const result = envelope.result as { symbols: Array<{ name: string | null }> };
   const names = result.symbols.map((s) => s.name);
-  // sqlLike and s are real variable symbols (their *values* happen to be
-  // strings that look like syntax) — only the fake symbols "inside" those
-  // string/template values must be absent.
+  // sqlLike is a real top-level variable. The local variable `s` is hidden by
+  // the agent-focused outline default; fake symbols inside string/template
+  // values must still be absent.
   assert.deepEqual(
     names.filter((n) => n !== null).sort(),
-    ["realFunction", "s", "sqlLike"],
+    ["realFunction", "sqlLike"],
   );
   assert.ok(!names.includes("commentedOutFunction"));
   assert.ok(!names.includes("CommentedClass"));
