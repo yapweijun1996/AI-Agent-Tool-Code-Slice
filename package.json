@@ -1,6 +1,6 @@
 {
   "name": "agent-code-slice",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Precise, language-aware code context for AI coding agents.",
   "type": "module",
   "license": "MIT",
@@ -50,7 +50,11 @@
     "grammars:verify": "node scripts/run-ts.mjs grammars/verify.ts",
     "benchmark:fixtures": "node scripts/run-ts.mjs test/benchmark/generate-fixtures.ts",
     "benchmark": "node scripts/run-ts.mjs test/benchmark/run.ts",
-    "cli": "node scripts/run-ts.mjs src/cli/index.ts"
+    "cli": "node scripts/run-ts.mjs src/cli/index.ts",
+    "release:version-check": "node scripts/check-release-version.mjs",
+    "release:check": "npm run release:version-check && npm run typecheck && npm test && npm run test:golden && npm run test:e2e && npm run grammars:verify && npm pack --dry-run",
+    "prepublishOnly": "npm run release:check",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "web-tree-sitter": "0.27.0"

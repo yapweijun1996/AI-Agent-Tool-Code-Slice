@@ -6,6 +6,10 @@ The project follows semantic versioning.
 
 ## [Unreleased]
 
+_No unreleased changes yet._
+
+## [0.3.0] - 2026-09-07
+
 ### Added
 
 - Added agent-focused navigation controls from real coding-agent usage: qualified
@@ -66,7 +70,7 @@ three Node 20 benchmark jobs. The registry-install job was skipped because
 this commit was not published; public-registry installation remains covered
 by the separate `0.2.0` release evidence above.
 
-The current Unreleased changes have passed local verification with typecheck,
+The 0.3.0 release candidate has passed local verification with typecheck,
 build, 73 unit tests, 19 Golden Eval cases, 4 agent-facing E2E cases, all 8
 grammar integrity checks, and `npm pack --dry-run`. Cross-platform CI evidence
 for these newest navigation changes is pending.
