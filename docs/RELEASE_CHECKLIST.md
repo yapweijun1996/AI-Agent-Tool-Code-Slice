@@ -64,7 +64,22 @@ Use for every package release.
 
 ## npm artifact
 
-- [ ] `npm pack --dry-run` reviewed.
+Recommended manual release flow:
+
+```bash
+npm ci
+npm run release:check
+npm publish
+```
+
+`release:check` fails if the current package version already exists on npm.
+`npm publish` runs the same release gate again through `prepublishOnly`, and
+`prepack` rebuilds `dist/` before npm creates the tarball. Do not bypass these
+lifecycle scripts with `--ignore-scripts`.
+
+- [ ] Current version is not already published (`npm run release:version-check`).
+- [ ] `npm run release:check` passed.
+- [ ] `npm pack --dry-run` reviewed and contains `dist/cli/index.js`.
 - [ ] Installed tarball tested in a clean temporary directory.
 - [ ] `npx` invocation tested.
 - [ ] package size reviewed.
