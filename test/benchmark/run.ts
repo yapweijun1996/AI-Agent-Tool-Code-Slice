@@ -87,6 +87,7 @@ interface ColdObservation {
 
 interface WarmObservation {
   outline: CliObservation;
+  compactOutline: CliObservation;
   symbol: CliObservation;
   symbolCodeBytes: number;
   symbolCodeLines: number;
@@ -113,10 +114,14 @@ interface BenchmarkMeasurement {
   extractMs: number;
   coldOutlineMs: number;
   warmOutlineMs: number;
+  warmCompactOutlineMs: number;
   coldSymbolMs: number;
   warmSymbolMs: number;
   outlineOutputBytes: number;
   outlineOutputLines: number;
+  compactOutlineOutputBytes: number;
+  compactOutlineOutputLines: number;
+  compactOutlineReductionPct: number;
   symbolOutputBytes: number;
   symbolOutputLines: number;
   symbolCodeBytes: number;
@@ -272,19 +277,27 @@ function runCold(target: BenchmarkTarget, operation: "outline" | "symbol"): Cold
 function parseWarmObservation(stdout: string, target: BenchmarkTarget): WarmObservation {
   const value = requireCliEnvelope(stdout, `Warm worker ${target.displayPath}`);
   const outline = value.outline;
+  const compactOutline = value.compactOutline;
   const symbol = value.symbol;
   if (typeof outline !== "object" || outline === null || Array.isArray(outline)) {
     throw new Error(`Warm worker returned no outline observation for ${target.displayPath}`);
+  }
+  if (typeof compactOutline !== "object" || compactOutline === null || Array.isArray(compactOutline)) {
+    throw new Error(`Warm worker returned no compact outline observation for ${target.displayPath}`);
   }
   if (typeof symbol !== "object" || symbol === null || Array.isArray(symbol)) {
     throw new Error(`Warm worker returned no symbol observation for ${target.displayPath}`);
   }
   const outlineObservation = outline as Record<string, unknown>;
+  const compactOutlineObservation = compactOutline as Record<string, unknown>;
   const symbolObservation = symbol as Record<string, unknown>;
   const numericFields = [
     ["outline.elapsedMs", outlineObservation.elapsedMs],
     ["outline.stdoutBytes", outlineObservation.stdoutBytes],
     ["outline.stdoutLines", outlineObservation.stdoutLines],
+    ["compactOutline.elapsedMs", compactOutlineObservation.elapsedMs],
+    ["compactOutline.stdoutBytes", compactOutlineObservation.stdoutBytes],
+    ["compactOutline.stdoutLines", compactOutlineObservation.stdoutLines],
     ["symbol.elapsedMs", symbolObservation.elapsedMs],
     ["symbol.stdoutBytes", symbolObservation.stdoutBytes],
     ["symbol.stdoutLines", symbolObservation.stdoutLines],
@@ -299,6 +312,7 @@ function parseWarmObservation(stdout: string, target: BenchmarkTarget): WarmObse
   }
   if (
     typeof outlineObservation.envelopeDigest !== "string" ||
+    typeof compactOutlineObservation.envelopeDigest !== "string" ||
     typeof symbolObservation.envelopeDigest !== "string"
   ) {
     throw new Error(`Warm worker returned invalid envelope digests for ${target.displayPath}`);
@@ -438,13 +452,13 @@ function buildReport(measurements: BenchmarkMeasurement[]): string {
   const latencyRows = measurements
     .map(
       (measurement) =>
-        `| ${measurement.adapter} | ${measurement.fixture} | ${formatBytes(measurement.sourceBytes)} | ${formatMs(measurement.rawReadMs)} ms | ${formatMs(measurement.hostLoadMs)} ms | ${formatMs(measurement.parseMs)} ms | ${formatMs(measurement.extractMs)} ms | ${formatMs(measurement.coldOutlineMs)} ms | ${formatMs(measurement.warmOutlineMs)} ms | ${formatMs(measurement.coldSymbolMs)} ms | ${formatMs(measurement.warmSymbolMs)} ms |`,
+        `| ${measurement.adapter} | ${measurement.fixture} | ${formatBytes(measurement.sourceBytes)} | ${formatMs(measurement.rawReadMs)} ms | ${formatMs(measurement.hostLoadMs)} ms | ${formatMs(measurement.parseMs)} ms | ${formatMs(measurement.extractMs)} ms | ${formatMs(measurement.coldOutlineMs)} ms | ${formatMs(measurement.warmOutlineMs)} ms | ${formatMs(measurement.warmCompactOutlineMs)} ms | ${formatMs(measurement.coldSymbolMs)} ms | ${formatMs(measurement.warmSymbolMs)} ms |`,
     )
     .join("\n");
   const outputRows = measurements
     .map(
       (measurement) =>
-        `| ${measurement.adapter} | ${measurement.fixture} | ${formatBytes(measurement.sourceBytes)} | ${formatBytes(measurement.outlineOutputBytes)} | ${measurement.outlineOutputLines} | ${formatBytes(measurement.symbolOutputBytes)} | ${measurement.symbolOutputLines} | ${formatBytes(measurement.symbolCodeBytes)} | ${measurement.symbolCodeLines} | ${measurement.symbolReductionPct.toFixed(3)}% |`,
+        `| ${measurement.adapter} | ${measurement.fixture} | ${formatBytes(measurement.sourceBytes)} | ${formatBytes(measurement.outlineOutputBytes)} | ${formatBytes(measurement.compactOutlineOutputBytes)} | ${measurement.compactOutlineReductionPct.toFixed(3)}% | ${formatBytes(measurement.symbolOutputBytes)} | ${formatBytes(measurement.symbolCodeBytes)} | ${measurement.symbolCodeLines} | ${measurement.symbolReductionPct.toFixed(3)}% |`,
     )
     .join("\n");
   const rssRows = measurements
@@ -487,8 +501,8 @@ ${grammarHashes}
 
 ## Latency
 
-| Adapter | Fixture | Source bytes | Raw read | Host grammar load | Parse | Adapter extract | Cold outline | Warm outline | Cold symbol | Warm symbol |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Adapter | Fixture | Source bytes | Raw read | Host grammar load | Parse | Adapter extract | Cold outline | Warm outline | Warm compact outline | Cold symbol | Warm symbol |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 ${latencyRows}
 
 Definitions:
@@ -508,16 +522,20 @@ Definitions:
 
 ## Output and context reduction
 
-| Adapter | Fixture | Source bytes | Outline JSON bytes | Outline lines | Symbol JSON bytes | Symbol lines | Exact symbol code bytes | Code lines | Symbol reduction |
+| Adapter | Fixture | Source bytes | Full outline JSON bytes | Compact page JSON bytes | Compact vs full reduction | Symbol JSON bytes | Exact symbol code bytes | Code lines | Symbol reduction |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 ${outputRows}
 
-The symbol reduction compares the exact \`result.code\` bytes for \`fn0\`
-with the full source bytes. The outline and symbol JSON values include the
-complete machine envelope an agent receives, including ranges and warnings.
-The benchmark compares a SHA-256 digest of the canonical JSON envelope to
-detect non-deterministic result changes. CLI framing bytes (including its
-terminal newline) are measured separately.
+The compact-outline column measures the default 200-symbol discovery page and
+its reduction against the full outline envelope. It measures delivered agent
+context, not parser/extraction work: both modes still establish the request's
+symbol inventory before filtering/paging. The symbol reduction compares the
+exact \`result.code\` bytes for \`fn0\` with the full source bytes. Full
+outline, compact outline, and symbol JSON values include the complete machine
+envelope an agent receives. The benchmark compares a SHA-256 digest of the
+canonical JSON envelope to detect non-deterministic full-outline/symbol result
+changes. CLI framing bytes (including its terminal newline) are measured
+separately.
 
 ## RSS observation
 
@@ -597,6 +615,7 @@ async function main(): Promise<void> {
     assertDeterministic(cold.symbol.last, warm.symbol, `Symbol ${target.displayPath}`);
 
     const symbolReductionPct = 100 * (1 - warm.symbolCodeBytes / sourceBytes);
+    const compactOutlineReductionPct = 100 * (1 - warm.compactOutline.stdoutBytes / warm.outline.stdoutBytes);
     const measurement: BenchmarkMeasurement = {
       adapter: adapter.id,
       fixture: target.displayPath,
@@ -610,10 +629,14 @@ async function main(): Promise<void> {
       extractMs: phases.extractMs,
       coldOutlineMs: cold.outline.medianMs,
       warmOutlineMs: warm.outline.elapsedMs,
+      warmCompactOutlineMs: warm.compactOutline.elapsedMs,
       coldSymbolMs: cold.symbol.medianMs,
       warmSymbolMs: warm.symbol.elapsedMs,
       outlineOutputBytes: warm.outline.stdoutBytes,
       outlineOutputLines: warm.outline.stdoutLines,
+      compactOutlineOutputBytes: warm.compactOutline.stdoutBytes,
+      compactOutlineOutputLines: warm.compactOutline.stdoutLines,
+      compactOutlineReductionPct,
       symbolOutputBytes: warm.symbol.stdoutBytes,
       symbolOutputLines: warm.symbol.stdoutLines,
       symbolCodeBytes: warm.symbolCodeBytes,
@@ -623,7 +646,7 @@ async function main(): Promise<void> {
     };
     measurements.push(measurement);
     console.error(
-      `${measurement.adapter}/${target.size}: warm outline ${formatMs(measurement.warmOutlineMs)} ms, warm symbol ${formatMs(measurement.warmSymbolMs)} ms`,
+      `${measurement.adapter}/${target.size}: warm outline ${formatMs(measurement.warmOutlineMs)} ms, compact ${formatMs(measurement.warmCompactOutlineMs)} ms, warm symbol ${formatMs(measurement.warmSymbolMs)} ms`,
     );
   }
 

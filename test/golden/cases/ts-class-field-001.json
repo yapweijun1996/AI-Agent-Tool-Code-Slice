@@ -1,0 +1,14 @@
+{
+  "id": "ts-class-field-001",
+  "file": "test/fixtures/typescript/practical-symbols.ts",
+  "operation": "symbol",
+  "selector": { "name": "OwnerOAuthProvider.commit" },
+  "expected": {
+    "kind": "method",
+    "name": "commit",
+    "signature": "commit(value: string)",
+    "startLine": 19,
+    "endLine": 19,
+    "codeIncludes": ["commit = (value: string): string", "value.trim()"]
+  }
+}

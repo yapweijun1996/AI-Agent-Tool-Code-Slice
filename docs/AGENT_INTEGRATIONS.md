@@ -45,7 +45,7 @@ Planned progression:
 
 1. CLI:
    ```bash
-   code-slice outline src/app.ts --json
+   code-slice outline src/app.ts --compact --json
    code-slice symbol src/app.ts calculateTotal --json
    ```
 2. future serverless wrapper, once its provider and source-input contract are selected;

@@ -69,7 +69,7 @@ Expected result records host and embedded language.
 
 ```text
 1. Agent sees a 4000-line source file.
-2. Agent runs `code-slice outline file --json`.
+2. Agent runs `code-slice outline file --compact --json` and follows `result.page.nextOffset` only if needed.
 3. Agent identifies the relevant symbol.
 4. Agent runs `code-slice symbol file symbol --json`.
 5. Agent reasons over the returned exact slice.

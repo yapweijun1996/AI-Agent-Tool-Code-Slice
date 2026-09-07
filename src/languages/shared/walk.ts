@@ -18,6 +18,8 @@ export interface SymbolRule {
    * rather than "function" when its immediate container is a "class").
    */
   kind: SymbolKind | ((node: Node, parent: SymbolRef | null) => SymbolKind);
+  /** Optional structural predicate for node types that should only surface in selected shapes. */
+  matches?: (node: Node) => boolean;
   extractName(node: Node): ExtractedName;
   extractSignature?: (node: Node, source: string) => string | null;
 }
@@ -43,8 +45,8 @@ export interface WalkConfig {
   };
 }
 
-function findRule(rules: SymbolRule[], nodeType: string): SymbolRule | undefined {
-  return rules.find((r) => r.nodeTypes.includes(nodeType));
+function findRule(rules: SymbolRule[], node: Node): SymbolRule | undefined {
+  return rules.find((r) => r.nodeTypes.includes(node.type) && (r.matches?.(node) ?? true));
 }
 
 /**
@@ -56,13 +58,13 @@ function findRule(rules: SymbolRule[], nodeType: string): SymbolRule | undefined
  * belongs to the normal recursive visit once we descend into it.
  */
 function findWrappedMatches(rules: SymbolRule[], node: Node): Array<{ node: Node; rule: SymbolRule }> {
-  const direct = findRule(rules, node.type);
+  const direct = findRule(rules, node);
   if (direct) return [{ node, rule: direct }];
 
   const nested: Array<{ node: Node; rule: SymbolRule }> = [];
   for (const child of node.namedChildren) {
     if (!child) continue;
-    const rule = findRule(rules, child.type);
+    const rule = findRule(rules, child);
     if (rule) nested.push({ node: child, rule });
   }
   return nested;
@@ -142,7 +144,7 @@ export function walkSymbols(root: Node, config: WalkConfig): CodeSymbol[] {
         continue;
       }
 
-      const rule = findRule(config.rules, child.type);
+      const rule = findRule(config.rules, child);
       if (rule) {
         const symbol = buildSymbol(child, child, rule, parent);
         addSymbol(symbol);

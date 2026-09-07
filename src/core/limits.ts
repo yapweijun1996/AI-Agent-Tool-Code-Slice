@@ -9,8 +9,11 @@ export const DEFAULT_MAX_BYTES = 5_000_000;
 /** A caller may narrow the input budget, but never raise it above this ceiling. */
 export const MAX_MAX_BYTES = 10_000_000;
 
-/** The default number of outline entries returned before an explicit warning. */
+/** The default number of full-outline entries returned before an explicit warning. */
 export const DEFAULT_MAX_SYMBOLS = 10_000;
+
+/** Agent-focused compact outlines default to a small page rather than a near-unbounded inventory. */
+export const DEFAULT_COMPACT_OUTLINE_SYMBOLS = 200;
 
 /** Protects extraction from materializing an unbounded symbol inventory. */
 export const MAX_EXTRACTED_SYMBOLS = 50_000;

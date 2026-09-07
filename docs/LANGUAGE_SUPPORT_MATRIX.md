@@ -37,6 +37,26 @@ need a new cross-platform run (see `README.md`'s status banner).
 | Svelte | `.svelte` | research | mixed | Planned |
 | JSP / Razor | varies | research | mixed | Planned |
 
+## TypeScript practical symbol coverage
+
+The TypeScript/TSX adapter recognizes the practical navigation units most
+likely to appear in large application files:
+
+- `enum` declarations as normalized kind `enum`;
+- `namespace X {}` and `module X {}` as normalized kind `module`;
+- class field arrows/function expressions such as `commit = () => ...` as
+  callable `method` symbols; ordinary non-callable class data fields are
+  intentionally omitted from discovery;
+- function-valued object properties such as `commit: () => ...` as `function`;
+- object shorthand methods continue to surface as `method`.
+
+These nested symbols preserve parent identity, so qualified lookup such as
+`OwnerOAuthProvider.commit`, `OAuth.normalize`, or `handlers.commit` can select
+one member without reading the enclosing class/module/object. Ordinary
+non-callable object-literal data properties are intentionally not added to the
+symbol inventory because doing so would recreate outline noise. Computed or
+otherwise non-static names remain fail-closed/dynamic rather than guessed.
+
 ## Certification rule
 
 A language may be marked **Verified** only when its certification suite passes for a named package/runtime version.

@@ -52,12 +52,18 @@ Use fixed fixtures and publish fixture hashes.
 - outline extraction;
 - exact symbol extraction;
 - peak memory where practical;
-- output bytes/lines;
-- context-reduction ratio.
+- full outline output bytes/lines;
+- default compact-outline page bytes and compact-vs-full reduction;
+- exact symbol output/code bytes and context-reduction ratio.
 
 The benchmark has a correctness gate before it emits a report: every fixture
 must parse without a recovery error, `fn0` must be present, CLI JSON and stderr
 must be clean, and cold/warm result envelopes must be byte-for-byte equal.
+
+Compact-outline measurements use the public Core API with `compact: true`, so
+they include the default 200-symbol page and its complete JSON envelope. This
+metric is explicitly about **delivered agent context**. It does not claim that
+pagination skips parsing or normalized-symbol extraction for the request.
 
 ## Cold vs warm
 

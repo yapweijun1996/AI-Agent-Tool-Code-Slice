@@ -349,3 +349,92 @@ test("agent-facing CLI narrows large-class navigation with qualified members and
 
   assert.equal(snapshotWorkspace(root), before, "precision navigation workflow modified the authorized workspace");
 });
+
+test("agent-facing compact outline bounds context and paginates deterministically", (testContext) => {
+  const root = createWorkspace(testContext, [
+    { source: "test/fixtures/benchmark/typescript/50kb.ts", destination: "src/large.ts" },
+  ]);
+  const before = snapshotWorkspace(root);
+  const sourceBytes = readFileSync(path.join(root, "src", "large.ts")).byteLength;
+
+  const fullRun = runCli(root, ["outline", "src/large.ts", "--root", root, "--json"]);
+  assert.equal(fullRun.status, 0);
+  const fullEnvelope = parseJsonEnvelope(fullRun, "full outline amplification baseline");
+  const fullResult = successResult(fullEnvelope, "full outline amplification baseline");
+  assert.ok(Buffer.byteLength(fullRun.stdout, "utf8") > sourceBytes, "fixture must reproduce full-outline context amplification");
+  assert.ok(Array.isArray(fullResult.symbols));
+
+  const compactRun = runCli(root, ["outline", "src/large.ts", "--root", root, "--compact", "--json"]);
+  assert.equal(compactRun.status, 0);
+  const compactEnvelope = parseJsonEnvelope(compactRun, "compact outline page 1");
+  const compactResult = successResult(compactEnvelope, "compact outline page 1");
+  assert.ok(Buffer.byteLength(compactRun.stdout, "utf8") < sourceBytes, "default compact page should stay below source bytes");
+  const page = record(compactResult.page, "compact outline.page");
+  assert.equal(page.offset, 0);
+  assert.equal(page.limit, 200);
+  assert.equal(page.returned, 200);
+  assert.equal(page.hasMore, true);
+  assert.equal(page.nextOffset, 200);
+
+  const symbols = compactResult.symbols as unknown[];
+  assert.equal(symbols.length, 200);
+  const first = record(symbols[0], "compact outline symbol");
+  assert.equal("nativeKind" in first, false);
+  assert.equal("signature" in first, false);
+  const range = record(first.range, "compact outline symbol.range");
+  assert.deepEqual(Object.keys(range).sort(), ["endLine", "startLine"]);
+
+  const nextRun = runCli(root, [
+    "outline",
+    "src/large.ts",
+    "--root",
+    root,
+    "--compact",
+    "--offset",
+    String(page.nextOffset),
+    "--json",
+  ]);
+  assert.equal(nextRun.status, 0);
+  const nextResult = successResult(parseJsonEnvelope(nextRun, "compact outline page 2"), "compact outline page 2");
+  const nextPage = record(nextResult.page, "compact outline page 2.page");
+  assert.equal(nextPage.offset, 200);
+  assert.equal(nextPage.returned, 200);
+  assert.equal(nextPage.nextOffset, 400);
+  assert.notDeepEqual(nextResult.symbols, compactResult.symbols);
+  assert.equal(snapshotWorkspace(root), before, "compact outline workflow modified the authorized workspace");
+});
+
+test("agent-facing TypeScript practical symbols support enum, namespace, class fields, and object callables", (testContext) => {
+  const root = createWorkspace(testContext, [
+    { source: "test/fixtures/typescript/practical-symbols.ts", destination: "src/practical.ts" },
+  ]);
+  const before = snapshotWorkspace(root);
+
+  const enumRun = runCli(root, ["outline", "src/practical.ts", "--root", root, "--kind", "enum", "--compact", "--json"]);
+  assert.equal(enumRun.status, 0);
+  const enumResult = successResult(parseJsonEnvelope(enumRun, "TypeScript enum outline"), "TypeScript enum outline");
+  const enumSymbols = enumResult.symbols as unknown[];
+  assert.equal(enumSymbols.length, 1);
+  assert.equal(record(enumSymbols[0], "enum outline symbol").name, "Status");
+
+  for (const [qualified, expectedKind] of [
+    ["OAuth.normalize", "function"],
+    ["OwnerOAuthProvider.commit", "method"],
+    ["OwnerOAuthProvider.fallback", "method"],
+    ["handlers.commit", "function"],
+    ["handlers.fallback", "function"],
+    ["handlers.shorthand", "method"],
+  ] as const) {
+    const run = runCli(root, ["symbol", "src/practical.ts", qualified, "--root", root, "--json"]);
+    assert.equal(run.status, 0, `${qualified} CLI status`);
+    const result = successResult(parseJsonEnvelope(run, qualified), qualified);
+    assert.equal(result.kind, expectedKind, `${qualified} kind`);
+  }
+
+  const ambiguous = runCli(root, ["symbol", "src/practical.ts", "commit", "--root", root, "--json"]);
+  assert.equal(ambiguous.status, 7);
+  const ambiguousEnvelope = parseJsonEnvelope(ambiguous, "TypeScript practical ambiguity");
+  assert.equal(ambiguousEnvelope.ok, false);
+  assert.equal(record(ambiguousEnvelope.error, "TypeScript practical ambiguity.error").code, "SYMBOL_AMBIGUOUS");
+  assert.equal(snapshotWorkspace(root), before, "TypeScript practical workflow modified the authorized workspace");
+});
