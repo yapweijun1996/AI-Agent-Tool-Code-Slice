@@ -2,7 +2,7 @@
 
 Precise, language-aware code context for AI coding agents.
 
-> Status: **V0.1 core Verified**. Current source package version: `agent-code-slice@0.3.0`. The previous `0.2.1` package is published on npm; `0.3.0` is the release candidate containing the newer agent-navigation controls. The repository CI covers Windows, macOS, and Ubuntu across the declared Node matrix. See `CHANGELOG.md` and `docs/RELEASE_CHECKLIST.md` for release evidence and the publish process.
+> Status: **V0.1 core Verified**. Current PR source package version: `agent-code-slice@0.4.0` (next minor candidate). Upstream `main` remains the `0.3.0` release candidate and npm latest is still `0.2.1`; publish `0.3.0` from current main before merging this PR.
 > npm publishing is guarded by `release:version-check`, `release:check`, and `prepack`: an already-published version fails before release, verification runs before publish, and `dist/` is rebuilt automatically before the tarball is created. No MCP server is planned; the CLI and JS API remain the supported integration surfaces.
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.

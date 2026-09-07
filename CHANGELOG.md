@@ -6,6 +6,8 @@ The project follows semantic versioning.
 
 ## [Unreleased]
 
+Package source version on PR #3 is `0.4.0`; release it only after the current upstream `0.3.0` candidate has been published.
+
 ### Added
 
 - Added compact outline discovery with deterministic pagination. `--compact`
