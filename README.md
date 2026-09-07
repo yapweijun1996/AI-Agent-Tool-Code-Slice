@@ -2,8 +2,8 @@
 
 Precise, language-aware code context for AI coding agents.
 
-> Status: **V0.1 core Verified**. Current PR source package version: `agent-code-slice@0.4.0` (next minor candidate). Upstream `main` remains the `0.3.0` release candidate and npm latest is still `0.2.1`; publish `0.3.0` from current main before merging this PR.
-> npm publishing is guarded by `release:version-check`, `release:check`, and `prepack`: an already-published version fails before release, verification runs before publish, and `dist/` is rebuilt automatically before the tarball is created. No MCP server is planned; the CLI and JS API remain the supported integration surfaces.
+> Status: **V0.1 core Verified**. Published package: `agent-code-slice@0.4.0` (npm `latest`). The cross-agent Code Slice Skill is implemented for Codex and Claude Code project workflows; vendor-version live E2E remains unverified.
+> npm publishing is guarded by `release:version-check`, `release:check`, and `prepack`: an already-published version fails before release, verification runs before publish, and `dist/` is rebuilt automatically before the tarball is created. No MCP server is planned; the CLI, JS API, and project-scoped Skills remain the supported integration surfaces.
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.
 
@@ -89,7 +89,7 @@ Read `result.code` for the exact text; do not re-derive it from `result.range` y
 
 From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
 
-**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); TypeScript discovery includes enums, namespace/module declarations, callable class fields, and function-valued object properties; CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, serialized-output, and optional slice-line budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, `maxLines` can bound a resolved slice without truncating it, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
+**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. The canonical project Skill and Codex/Claude Code entrypoints are provided under `integrations/agent-code-slice/`, `.agents/skills/`, and `.claude/skills/`; vendor-version-specific live E2E remains unverified. The future serverless adapter is still planned (see `ROADMAP.md`). Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); TypeScript discovery includes enums, namespace/module declarations, callable class fields, and function-valued object properties; CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, serialized-output, and optional slice-line budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, `maxLines` can bound a resolved slice without truncating it, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, vendor-specific agent certification, and broader performance guarantees remain outside the current evidence.
 
 ## Product principles
 
@@ -171,8 +171,8 @@ before implementation. See [Serverless integration](docs/SERVERLESS_INTEGRATION.
 
 | Agent | Current integration | Future optional integration |
 |---|---|---|
-| Codex CLI | CLI | Skill or serverless wrapper |
-| Claude Code | CLI | Serverless wrapper |
+| Codex CLI | CLI + project Skill | Serverless wrapper |
+| Claude Code | CLI + project Skill | Serverless wrapper |
 | Gemini CLI | CLI | Serverless wrapper or Extension |
 | OpenCode | CLI | Serverless wrapper or Custom Tool |
 | AGRUN | JS API | Serverless wrapper |
@@ -181,8 +181,10 @@ before implementation. See [Serverless integration](docs/SERVERLESS_INTEGRATION.
 
 The public compatibility statement should be:
 
-> Works with AI coding agents that can use shell commands or JavaScript. A
-> future serverless adapter is a separate planned integration.
+> Works with AI coding agents that can use shell commands or JavaScript. Project
+> Skills are provided for Codex CLI and Claude Code; vendor-version live
+> compatibility remains unverified. A future serverless adapter is a separate
+> planned integration.
 
 Do not claim "supports all AI agents."
 
