@@ -49,6 +49,7 @@ const BOOLEAN_FLAGS = new Set([
   "clamp",
   "top-level",
   "include-locals",
+  "compact",
   "debug",
   "version",
   "help",
@@ -56,6 +57,7 @@ const BOOLEAN_FLAGS = new Set([
 const VALUE_FLAGS = new Set([
   "kind",
   "max-symbols",
+  "offset",
   "max-output-bytes",
   "max-lines",
   "language",
@@ -73,8 +75,10 @@ const ALLOWED_FLAGS_BY_COMMAND: Record<string, ReadonlySet<string>> = {
     "max-output-bytes",
     "kind",
     "max-symbols",
+    "offset",
     "top-level",
     "include-locals",
+    "compact",
   ]),
   symbol: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "max-lines", "kind"]),
   line: new Set(["json", "debug", "language", "root", "max-bytes", "max-output-bytes", "max-lines"]),
@@ -162,7 +166,7 @@ const HELP_TEXT = `code-slice — precise, language-aware code context for AI co
 
 Usage:
   code-slice capabilities [--json]
-  code-slice outline <file> [--top-level] [--include-locals] [--kind <kind>] [--max-symbols <n>] [--json]
+  code-slice outline <file> [--compact] [--top-level] [--include-locals] [--kind <kind>] [--max-symbols <n>] [--offset <n>] [--json]
   code-slice symbol <file> <name|Owner.member> [--kind <kind>] [--max-lines <n>] [--json]
   code-slice line <file> <line> [--max-lines <n>] [--json]
   code-slice range <file> <start:end> [--expand|--smallest] [--clamp] [--max-lines <n>] [--json]
@@ -177,6 +181,8 @@ Global flags:
   --max-lines <n>   Fail closed if a resolved symbol/line/range slice exceeds <n> lines.
   --top-level       Outline only symbols without a normalized parent.
   --include-locals  Include symbols nested inside functions/methods in outline output.
+  --compact         Outline with line-only ranges and navigation fields for smaller agent context.
+  --offset <n>      Outline page offset after filtering/sorting; combine with --max-symbols.
   --smallest        Range mode: use the smallest containing named syntax node.
   --clamp           Range mode: clamp an overlapping end beyond EOF to the last line.
   --debug           Reserved; currently a no-op.
@@ -310,6 +316,8 @@ async function run(): Promise<number> {
         if (!file) throw new CliUsageError("outline requires <file>");
         const maxSymbols =
           typeof parsed.flags["max-symbols"] === "string" ? parseIntArg("max-symbols", parsed.flags["max-symbols"]) : undefined;
+        const offset =
+          typeof parsed.flags.offset === "string" ? parseIntArg("offset", parsed.flags.offset) : undefined;
         const envelope = await outline({
           file,
           root,
@@ -318,6 +326,8 @@ async function run(): Promise<number> {
           maxOutputBytes,
           kind,
           maxSymbols,
+          offset,
+          compact: Boolean(parsed.flags.compact),
           topLevel: Boolean(parsed.flags["top-level"]),
           includeLocals: Boolean(parsed.flags["include-locals"]),
         });

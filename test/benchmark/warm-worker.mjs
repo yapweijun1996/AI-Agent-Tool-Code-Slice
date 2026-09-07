@@ -78,11 +78,14 @@ async function main() {
   }
 
   assertExpectedOutline(await outline({ file: filePath }), selectorName, `Warm prime ${filePath}`);
+  assertExpectedOutline(await outline({ file: filePath, compact: true }), selectorName, `Warm compact prime ${filePath}`);
   collectGarbage();
 
   const outlineTimes = [];
+  const compactOutlineTimes = [];
   const symbolTimes = [];
   let lastOutline;
+  let lastCompactOutline;
   let lastSymbol;
   let symbolCode = "";
 
@@ -93,6 +96,14 @@ async function main() {
     assertExpectedOutline(outlineEnvelope, selectorName, `Warm outline ${filePath}`);
     lastOutline = observation(outlineEnvelope, outlineElapsedMs);
     outlineTimes.push(outlineElapsedMs);
+    collectGarbage();
+
+    const compactOutlineStart = performance.now();
+    const compactOutlineEnvelope = await outline({ file: filePath, compact: true });
+    const compactOutlineElapsedMs = performance.now() - compactOutlineStart;
+    assertExpectedOutline(compactOutlineEnvelope, selectorName, `Warm compact outline ${filePath}`);
+    lastCompactOutline = observation(compactOutlineEnvelope, compactOutlineElapsedMs);
+    compactOutlineTimes.push(compactOutlineElapsedMs);
     collectGarbage();
 
     const symbolStart = performance.now();
@@ -107,11 +118,12 @@ async function main() {
     collectGarbage();
   }
 
-  if (!lastOutline || !lastSymbol) throw new Error(`Warm benchmark produced no observations for ${filePath}`);
+  if (!lastOutline || !lastCompactOutline || !lastSymbol) throw new Error(`Warm benchmark produced no observations for ${filePath}`);
   collectGarbage();
   process.stdout.write(
     `${JSON.stringify({
       outline: { ...lastOutline, elapsedMs: median(outlineTimes) },
+      compactOutline: { ...lastCompactOutline, elapsedMs: median(compactOutlineTimes) },
       symbol: { ...lastSymbol, elapsedMs: median(symbolTimes) },
       symbolCodeBytes: Buffer.byteLength(symbolCode, "utf8"),
       symbolCodeLines: lineCount(symbolCode),

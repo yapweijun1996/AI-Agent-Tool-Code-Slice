@@ -1,0 +1,14 @@
+{
+  "id": "ts-object-function-001",
+  "file": "test/fixtures/typescript/practical-symbols.ts",
+  "operation": "symbol",
+  "selector": { "name": "handlers.commit" },
+  "expected": {
+    "kind": "function",
+    "name": "commit",
+    "signature": "commit(value: string)",
+    "startLine": 29,
+    "endLine": 29,
+    "codeIncludes": ["commit: (value: string): string", "value.trim()"]
+  }
+}

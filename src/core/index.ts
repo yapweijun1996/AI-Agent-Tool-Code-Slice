@@ -7,6 +7,7 @@ import type { CodeSymbol, Diagnostic, Selector, SymbolKind } from "../schema/typ
 import { loadFile } from "./file-loader.js";
 import {
   createSymbolBudget,
+  DEFAULT_COMPACT_OUTLINE_SYMBOLS,
   finalizeResultEnvelope,
   MAX_OUTPUT_BYTES,
   normalizeMaxOutputBytes,
@@ -42,7 +43,12 @@ export interface FileParams {
 
 export interface OutlineParams extends FileParams {
   kind?: SymbolKind;
+  /** Page size after filtering/sorting. Retains the existing maxSymbols contract. */
   maxSymbols?: number;
+  /** Zero-based page offset after filtering/sorting. */
+  offset?: number;
+  /** Emit a smaller agent-navigation shape instead of full symbol coordinates/native kinds. */
+  compact?: boolean;
   /** Return only symbols without a normalized parent. */
   topLevel?: boolean;
   /** Include symbols nested inside functions/methods; defaults to false for agent-focused outlines. */
@@ -62,11 +68,29 @@ function slicePayload(symbol: CodeSymbol, sourceIndex: SourceIndex) {
   return { ...rest, code: sourceIndex.textForRange(symbol.range) };
 }
 
-/** `result` payload for one outline entry: the CodeSymbol fields, no code text (outline is a bounded structural inventory, not a bundle of full slices). */
+/** Full outline entry: the CodeSymbol fields without source text or the envelope-level host language. */
 function outlinePayload(symbol: CodeSymbol) {
   const { language, ...rest } = symbol;
   void language;
   return rest;
+}
+
+/**
+ * Compact outline entry for agent discovery. Keep only fields needed to choose
+ * a later symbol/range slice; byte/column/native-kind detail remains available
+ * from the full outline and exact slice operations.
+ */
+function compactOutlinePayload(symbol: CodeSymbol) {
+  const payload: Record<string, unknown> = {
+    kind: symbol.kind,
+    name: symbol.name,
+    range: { startLine: symbol.range.startLine, endLine: symbol.range.endLine },
+  };
+  if (symbol.parent) payload.parent = { kind: symbol.parent.kind, name: symbol.parent.name };
+  if (symbol.embeddedLanguage !== undefined) payload.embeddedLanguage = symbol.embeddedLanguage;
+  if (symbol.dynamicName) payload.dynamicName = true;
+  if (symbol.warnings?.length) payload.warningCodes = [...new Set(symbol.warnings.map((warning) => warning.code))];
+  return payload;
 }
 
 async function loadAndExtract(
@@ -119,43 +143,82 @@ export async function capabilities(): Promise<ResultEnvelope> {
   }
 }
 
-function isLocalSymbol(symbol: CodeSymbol): boolean {
-  const nestedInCallable = symbol.parent?.kind === "function" || symbol.parent?.kind === "method";
-  return nestedInCallable && (symbol.kind === "variable" || symbol.kind === "function");
+function symbolRefKey(symbol: Pick<CodeSymbol, "kind" | "name" | "range">): string {
+  return `${symbol.kind}:${symbol.name ?? ""}:${symbol.range.startByte}:${symbol.range.endByte}`;
+}
+
+function buildSymbolLookup(symbols: CodeSymbol[]): Map<string, CodeSymbol> {
+  return new Map(symbols.map((symbol) => [symbolRefKey(symbol), symbol]));
+}
+
+function isLocalSymbol(symbol: CodeSymbol, byRef: ReadonlyMap<string, CodeSymbol>): boolean {
+  // Only declaration-like symbols are suppressed. Structural symbols such as
+  // CFML queries remain visible even when they live inside a function.
+  if (symbol.kind !== "variable" && symbol.kind !== "function" && symbol.kind !== "method") return false;
+
+  let parent = symbol.parent ?? null;
+  const visited = new Set<string>();
+  while (parent) {
+    if (parent.kind === "function" || parent.kind === "method") return true;
+    const key = symbolRefKey(parent);
+    if (visited.has(key)) break;
+    visited.add(key);
+    parent = byRef.get(key)?.parent ?? null;
+  }
+  return false;
 }
 
 export async function outline(params: OutlineParams): Promise<ResultEnvelope> {
   const outputBudget = requestedMaxOutputBytesOrDefault(params);
   try {
     const validated = validateOutlineParams(params);
-    const maxSymbols = normalizeMaxSymbols(validated.maxSymbols);
+    const maxSymbols =
+      validated.compact && validated.maxSymbols === undefined
+        ? DEFAULT_COMPACT_OUTLINE_SYMBOLS
+        : normalizeMaxSymbols(validated.maxSymbols);
     const maxOutputBytes = normalizeMaxOutputBytes(validated.maxOutputBytes);
+    const offset = validated.offset ?? 0;
     const { adapter, symbols, warnings, loaded } = await loadAndExtract(validated);
-    let filtered = validated.includeLocals ? symbols : symbols.filter((s) => !isLocalSymbol(s));
+    const byRef = buildSymbolLookup(symbols);
+    let filtered = validated.includeLocals ? symbols : symbols.filter((s) => !isLocalSymbol(s, byRef));
     if (validated.topLevel) filtered = filtered.filter((s) => s.parent == null);
     if (validated.kind) filtered = filtered.filter((s) => s.kind === validated.kind);
     filtered = [...filtered].sort((a, b) => a.range.startByte - b.range.startByte);
 
-    const truncated = filtered.length > maxSymbols;
     const total = filtered.length;
-    if (truncated) filtered = filtered.slice(0, maxSymbols);
+    const pageSymbols = filtered.slice(offset, offset + maxSymbols);
+    const returned = pageSymbols.length;
+    const candidateNextOffset = offset + returned;
+    const hasMore = candidateNextOffset < total;
+    const nextOffset = hasMore && returned > 0 ? candidateNextOffset : undefined;
+    const truncated = offset > 0 || hasMore;
+    const page = {
+      total,
+      returned,
+      offset,
+      limit: maxSymbols,
+      truncated,
+      hasMore,
+      ...(nextOffset !== undefined ? { nextOffset } : {}),
+    };
 
-    const allWarnings = truncated
+    const allWarnings = hasMore
       ? [
           ...warnings,
           {
             code: "OUTLINE_TRUNCATED",
-            message: `Outline truncated to ${maxSymbols} of ${total} symbol(s).`,
+            message: `Outline page returned ${returned} symbol(s) at offset ${offset} of ${total}; more results are available.`,
             severity: "warning" as const,
           },
         ]
       : warnings;
 
+    const mapper = validated.compact ? compactOutlinePayload : outlinePayload;
     const envelope = buildSuccessEnvelope({
       operation: "outline",
       file: loaded.requestedPath,
       language: adapter.id,
-      result: { symbols: filtered.map(outlinePayload) },
+      result: { symbols: pageSymbols.map(mapper), page },
       warnings: allWarnings,
     });
     return finalizeResultEnvelope(envelope, maxOutputBytes);

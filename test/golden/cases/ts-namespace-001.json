@@ -1,0 +1,13 @@
+{
+  "id": "ts-namespace-001",
+  "file": "test/fixtures/typescript/practical-symbols.ts",
+  "operation": "symbol",
+  "selector": { "name": "OAuth", "kind": "module" },
+  "expected": {
+    "kind": "module",
+    "name": "OAuth",
+    "startLine": 6,
+    "endLine": 12,
+    "codeIncludes": ["export namespace OAuth", "export const normalize"]
+  }
+}

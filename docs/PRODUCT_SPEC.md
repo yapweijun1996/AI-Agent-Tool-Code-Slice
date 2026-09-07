@@ -56,10 +56,14 @@ Use:
 ### File outline
 
 ```bash
-code-slice outline src/app.ts --json
+code-slice outline src/app.ts --compact --json
 ```
 
-Return a bounded structural inventory.
+Return a bounded structural inventory. Compact discovery defaults to a
+200-symbol page and returns `result.page.nextOffset` when more structure is
+available; agents should request another page only when needed. Full `outline`
+remains available for complete coordinates, signatures, and parser-native
+metadata.
 
 ### Symbol slice
 

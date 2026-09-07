@@ -2,7 +2,7 @@
 
 Precise, language-aware code context for AI coding agents.
 
-> Status: **V0.1 core Verified**. Current source package version: `agent-code-slice@0.3.0`. The previous `0.2.1` package is published on npm; `0.3.0` is the release candidate containing the newer agent-navigation controls. The repository CI covers Windows, macOS, and Ubuntu across the declared Node matrix. See `CHANGELOG.md` and `docs/RELEASE_CHECKLIST.md` for release evidence and the publish process.
+> Status: **V0.1 core Verified**. Current PR source package version: `agent-code-slice@0.4.0` (next minor candidate). Upstream `main` remains the `0.3.0` release candidate and npm latest is still `0.2.1`; publish `0.3.0` from current main before merging this PR.
 > npm publishing is guarded by `release:version-check`, `release:check`, and `prepack`: an already-published version fails before release, verification runs before publish, and `dist/` is rebuilt automatically before the tarball is created. No MCP server is planned; the CLI and JS API remain the supported integration surfaces.
 
 Agent Code Slice is a local-first, read-only developer tool that extracts the exact syntactic code unit an AI coding agent needs instead of forcing the agent to read an entire source file.
@@ -48,17 +48,20 @@ The project is intentionally not a code search engine, repository indexer, RAG s
 
 If you are an AI coding agent and `code-slice` is installed (`npm install -D agent-code-slice`, or already a dependency of the project you're working in), prefer it over reading a whole file when you only need one symbol, one line's container, or one range.
 
-**Decision rule:** know the file and a symbol name → use `symbol`. Know the file and a line number (e.g. from a stack trace or lint error) → use `line`. Don't know what's in the file yet → use `outline` first, then `symbol` on what you find. Don't know if this file's language is supported → check `capabilities` or just try; it fails closed with a machine-readable error rather than guessing.
+**Decision rule:** know the file and a symbol name → use `symbol`. Know the file and a line number (e.g. from a stack trace or lint error) → use `line`. Don't know what's in the file yet → start with `outline --compact`, follow `result.page.nextOffset` only when needed, then use `symbol` on what you find. Use full `outline` only when you actually need native kinds, byte/column coordinates, signatures, or the complete structural record. Don't know if this file's language is supported → check `capabilities` or just try; it fails closed with a machine-readable error rather than guessing.
 
 ```bash
 # What can this tool do, and what languages does it support?
 code-slice capabilities --json
 
-# What's in this file? Local declarations are hidden by default.
-code-slice outline src/app.ts --json
+# What's in this file? Compact discovery defaults to a 200-symbol page.
+code-slice outline src/app.ts --compact --json
+
+# Continue only when result.page.hasMore is true.
+code-slice outline src/app.ts --compact --offset 200 --json
 
 # For a high-level map only.
-code-slice outline src/app.ts --top-level --json
+code-slice outline src/app.ts --compact --top-level --json
 
 # Give me exactly this function/method/class/query — nothing else.
 code-slice symbol src/app.ts calculateTotal --json
@@ -78,13 +81,15 @@ code-slice range src/oauth.ts 920:940 --smallest --max-lines 120 --json
 
 Every command above prints **exactly one JSON document to stdout** when `--json` is passed (Core results use `schemas/code-slice-result-v1.schema.json`; CLI usage errors use the additive `schemas/code-slice-result-v1.1.schema.json`, both described in `docs/JSON_SCHEMA.md`) — safe to pipe and parse directly, e.g. `code-slice symbol src/app.ts calculateTotal --json | jq -r .result.code`. Diagnostics go to stderr, never stdout.
 
+Compact outline is intentionally discovery-only: each entry keeps `kind`, `name`, a line-only range, parent identity when present, embedded-language identity, dynamic-name state, and warning codes. It omits signatures, native parser kinds, columns, and byte offsets; fetch the chosen symbol for those details. Full outline remains available and backward compatible. Every outline result includes `result.page` with `total`, `returned`, `offset`, `limit`, `truncated`, `hasMore`, and `nextOffset` when another page exists.
+
 Read `result.code` for the exact text; do not re-derive it from `result.range` yourself. On failure, check `error.code` (stable values like `SYMBOL_NOT_FOUND`, `SYMBOL_AMBIGUOUS`, `LANGUAGE_UNSUPPORTED` — full list in `docs/JSON_SCHEMA.md`) rather than parsing `error.message`, and fall back to reading the file normally — this tool never guesses a symbol, language, or boundary, so an error here is real signal, not a bug to route around. `SYMBOL_AMBIGUOUS` includes bounded `candidates`; either narrow with `--kind`, use a qualified `Owner.member` name when the parent is known, or pick a candidate and say which. `RANGE_INVALID` may include structured `error.details.suggestion`; `--clamp` only applies a safe overlapping end-of-file suggestion.
 
 `code-slice` is navigation, not correctness proof. A good coding-agent loop is: **code-slice → understand the target code → run the focused typecheck/test/runtime check → run the broader regression suite**. It does not validate filesystem semantics, network results, permissions, database transactions, or business correctness by itself.
 
 From Node.js/TypeScript, the same three operations are a JS API (`import { capabilities, outline, slice } from "agent-code-slice"` — see below) if shelling out isn't convenient.
 
-**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, serialized-output, and optional slice-line budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, `maxLines` can bound a resolved slice without truncating it, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
+**Current honest limits, so you don't assume more than what's real:** No MCP server or MCP/stdio adapter is planned. Agent-specific Skills/Extensions and the future serverless adapter are not built yet (V0.2, see `ROADMAP.md`) — the CLI and JS API are the current integration surfaces. Only JavaScript, TypeScript, TSX, Python, and CFML/CFScript/CFQuery are supported (`docs/LANGUAGE_SUPPORT_MATRIX.md`); TypeScript discovery includes enums, namespace/module declarations, callable class fields, and function-valued object properties; CFML `<script>`/`<style>` regions are re-parsed as JavaScript/CSS, while standalone CSS is not a registered host adapter. Anything else returns `LANGUAGE_UNSUPPORTED`. Core applies bounded file, symbol, serialized-output, and optional slice-line budgets; `maxOutputBytes` accepts 256 bytes through 8 MiB, `maxLines` can bound a resolved slice without truncating it, malformed limits fail closed with `INVALID_ARGUMENT`, and oversized valid results or error envelopes return `OUTPUT_LIMIT_EXCEEDED` rather than being silently truncated. Release CI covers the new CFML embedded paths, the declared Node floor, and `0.2.0` registry installation on Windows/macOS/Ubuntu; standalone CSS, serverless, agent-specific integrations, and broader performance guarantees remain outside the current evidence.
 
 ## Product principles
 
@@ -119,7 +124,7 @@ See [docs/LANGUAGE_SUPPORT_MATRIX.md](docs/LANGUAGE_SUPPORT_MATRIX.md).
 
 ```bash
 code-slice capabilities --json
-code-slice outline src/app.ts --top-level --json
+code-slice outline src/app.ts --compact --top-level --json
 code-slice symbol src/app.ts OwnerOAuthProvider.commit --max-lines 120 --json
 code-slice line src/app.ts 382 --max-lines 80 --json
 code-slice range src/app.ts 380:390 --smallest --max-lines 120 --json

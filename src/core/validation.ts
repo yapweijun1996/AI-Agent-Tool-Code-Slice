@@ -79,12 +79,16 @@ export function validateOutlineParams(value: unknown): OutlineParams {
   const base = validateBaseParams(value);
   const kind = optionalKind(record.kind, "kind");
   const maxSymbols = record.maxSymbols === undefined ? undefined : normalizeMaxSymbols(record.maxSymbols);
+  const offset = optionalBoundedInteger(record.offset, "offset", 0, MAX_EXTRACTED_SYMBOLS);
+  const compact = optionalBoolean(record.compact, "compact");
   const topLevel = optionalBoolean(record.topLevel, "topLevel");
   const includeLocals = optionalBoolean(record.includeLocals, "includeLocals");
   return {
     ...base,
     ...(kind !== undefined ? { kind } : {}),
     ...(maxSymbols !== undefined ? { maxSymbols } : {}),
+    ...(offset !== undefined ? { offset } : {}),
+    ...(compact !== undefined ? { compact } : {}),
     ...(topLevel !== undefined ? { topLevel } : {}),
     ...(includeLocals !== undefined ? { includeLocals } : {}),
   };

@@ -45,6 +45,52 @@ schemas/code-slice-result-v1.1.schema.json
 }
 ```
 
+## Outline result, compact mode, and pagination
+
+Every successful `outline` result now includes page metadata in addition to the
+`symbols` array:
+
+```json
+{
+  "symbols": ["..."],
+  "page": {
+    "total": 681,
+    "returned": 200,
+    "offset": 0,
+    "limit": 200,
+    "truncated": true,
+    "hasMore": true,
+    "nextOffset": 200
+  }
+}
+```
+
+Pagination is deterministic for one file state: filters (`includeLocals`,
+`topLevel`, `kind`) are applied first, then symbols are sorted by source byte
+position, then `offset`/`maxSymbols` select the page. `nextOffset` is present
+only when another non-empty page can be requested. If the source file changes,
+restart discovery rather than assuming an old offset still points at the same
+symbol.
+
+Full outline entries retain the normal CodeSymbol shape. Compact outline is an
+explicit discovery shape intended to reduce agent context:
+
+```json
+{
+  "kind": "method",
+  "name": "commit",
+  "range": { "startLine": 815, "endLine": 829 },
+  "parent": { "kind": "class", "name": "OwnerOAuthProvider" }
+}
+```
+
+Compact entries omit `nativeKind`, signatures, columns, byte offsets, and full
+parent ranges. They may additionally include `embeddedLanguage`,
+`dynamicName`, and `warningCodes`. The exact `symbol` operation remains the
+source for full coordinates, signature, parser-native kind, and source text.
+Compact mode defaults to 200 symbols per page; full outline keeps its existing
+10,000-symbol default unless `maxSymbols` is supplied.
+
 ## Error envelope
 
 ```json

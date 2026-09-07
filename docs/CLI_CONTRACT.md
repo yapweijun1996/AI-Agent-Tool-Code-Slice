@@ -33,7 +33,7 @@ Returns supported operations, languages, extensions, parser engine, and schema v
 ### outline
 
 ```bash
-code-slice outline <file> [--top-level] [--include-locals] [--json]
+code-slice outline <file> [--compact] [--top-level] [--include-locals] [--max-symbols <n>] [--offset <n>] [--json]
 ```
 
 Options:
@@ -41,6 +41,8 @@ Options:
 ```text
 --kind <kind>
 --max-symbols <n>
+--offset <n>
+--compact
 --language <id>
 --root <path>
 --max-bytes <n>
@@ -56,12 +58,25 @@ agent. Class methods, CFML queries, and other non-local structural symbols are
 not hidden. `--include-locals` restores those callable-local declarations.
 `--top-level` returns only symbols whose normalized `parent` is null.
 
-`--max-symbols` is a safe integer from `0` through `50,000`; the default
-outline result is limited to `10,000` entries and reports `OUTLINE_TRUNCATED`
-when more symbols were found. `--max-bytes` defaults to `5,000,000` and may
-not exceed `10,000,000`. `--max-output-bytes` defaults to `8 MiB` and may only
-narrow that ceiling to a minimum of 256 bytes. Invalid values fail closed with
-`INVALID_ARGUMENT`.
+`--compact` is the recommended agent-discovery mode. It returns only `kind`,
+`name`, a line-only range, immediate parent identity when present,
+`embeddedLanguage`, `dynamicName`, and bounded `warningCodes`. It deliberately
+omits `nativeKind`, signatures, columns, and byte offsets; use full `outline`
+or an exact `symbol` slice when those details are needed. Compact mode defaults
+to a **200-symbol page**. Full outline retains the existing 10,000-symbol
+default.
+
+`--offset <n>` is a zero-based page offset applied after local/top-level/kind
+filters and stable source-order sorting. Every outline success returns
+`result.page` with `total`, `returned`, `offset`, `limit`, `truncated`,
+`hasMore`, and `nextOffset` when another page exists. Feed `nextOffset` back to
+`--offset`; do not calculate a cursor from source lines. `--max-symbols` is the
+page size and remains a safe integer from `0` through `50,000`.
+`OUTLINE_TRUNCATED` is emitted when more results remain after the current page.
+
+`--max-bytes` defaults to `5,000,000` and may not exceed `10,000,000`.
+`--max-output-bytes` defaults to `8 MiB` and may only narrow that ceiling to a
+minimum of 256 bytes. Invalid values fail closed with `INVALID_ARGUMENT`.
 
 ### symbol
 
@@ -198,5 +213,6 @@ code-slice symbol src/oauth.ts OwnerOAuthProvider.commit --max-lines 120 --json
 code-slice symbol invoice.cfm qInvoice --kind query --json
 code-slice line src/service.ts 382 --max-lines 80 --json
 code-slice range src/oauth.ts 920:940 --smallest --max-lines 120 --json
-code-slice outline src/service.ts --top-level --max-symbols 500 --max-output-bytes 2000000 --json
+code-slice outline src/service.ts --compact --top-level --json
+code-slice outline src/service.ts --compact --offset 200 --json
 ```

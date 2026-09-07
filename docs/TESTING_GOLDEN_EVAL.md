@@ -125,8 +125,9 @@ repository; malformed case definitions fail closed before execution.
 
 The checked-in cases cover all current adapters, all four selector operations,
 exact range text, BOM byte coordinates, whitespace-aware line/range container
-selection, CFML JavaScript/CSS embedding, SQL-level CFQuery symbols,
-ambiguity, not-found behavior, and malformed-source warnings. Explicitly
+selection, TypeScript enum/namespace/class-field/object-callable symbols, CFML
+JavaScript/CSS embedding, SQL-level CFQuery symbols, ambiguity, not-found
+behavior, and malformed-source warnings. Explicitly
 unsupported/dynamic HTML region types are covered by the CFML unit fixture and
 are skipped rather than guessed.
 
@@ -136,10 +137,14 @@ CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
 passed the then-current 12 cases on Windows, macOS, and Ubuntu with Node 20 and
 Node 22. The run also passed the then-current 39-test unit suite, grammar
-integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in
-set now has 19 cases; the published release evidence covers 47 tests, while
-hardening commit `1712f17` has 55 tests. The current Unreleased working-tree
-changes have 64 local unit tests; their cross-platform CI evidence is pending.
+integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in set now has **23 cases**. The latest completed 0.3.0 release
+pipeline PR (#2), CI run
+[34090088966](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/34090088966),
+passed the previous 19 Golden cases, 73 unit tests, 4 agent-facing E2E cases,
+all nine Windows/macOS/Ubuntu × Node 18.18.0/20/22 test jobs, and all three
+Node 20 benchmark jobs. The current Unreleased compact-outline/TypeScript
+coverage changes have 80 local unit tests, 23 Golden cases, and 6 agent-facing
+E2E cases; their own cross-platform CI evidence is pending.
 The V0.2 release CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 passed the previous 16 cases, 47-test suite, grammar integrity check, CLI smoke

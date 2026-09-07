@@ -1,0 +1,13 @@
+{
+  "id": "ts-enum-001",
+  "file": "test/fixtures/typescript/practical-symbols.ts",
+  "operation": "symbol",
+  "selector": { "name": "Status", "kind": "enum" },
+  "expected": {
+    "kind": "enum",
+    "name": "Status",
+    "startLine": 1,
+    "endLine": 4,
+    "codeIncludes": ["export enum Status", "Done = \"done\""]
+  }
+}

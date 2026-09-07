@@ -6,7 +6,39 @@ The project follows semantic versioning.
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+Package source version on PR #3 is `0.4.0`; release it only after the current upstream `0.3.0` candidate has been published.
+
+### Added
+
+- Added compact outline discovery with deterministic pagination. `--compact`
+  defaults to a 200-symbol page, `--offset` continues from
+  `result.page.nextOffset`, and every outline result reports structured
+  `total/returned/offset/limit/truncated/hasMore` metadata. Compact entries
+  omit signatures/native kinds/byte coordinates so agents can discover first
+  and fetch exact symbols only when needed.
+- Expanded TypeScript/TSX symbol coverage for `enum`, namespace/module
+  declarations, callable class fields, and function-valued object properties;
+  qualified `Owner.member` lookup works across those new practical symbols.
+- Added frozen TypeScript practical fixtures, four Golden Eval cases, unit
+  coverage for compact pagination/context reduction, and agent-facing CLI E2E
+  coverage for both features.
+- Extended the reproducible benchmark report with warm compact-outline latency,
+  compact-page JSON bytes, and compact-vs-full context reduction across every
+  existing adapter/size cohort.
+
+### Changed
+
+- Added normalized symbol kind `enum`.
+- Extended the shared JS-family symbol walker with a rule predicate so
+  function-valued object pairs can be surfaced without adding every ordinary
+  object data property to outline output.
+- Made default local-symbol suppression follow normalized parent ancestry so
+  callable properties inside a function-local object do not leak back into
+  compact/full discovery; `--include-locals` still restores them explicitly.
+
+Local verification for these Unreleased changes passes 80 unit tests, 23 Golden
+Eval cases, 6 agent-facing E2E cases, and the full 20-fixture benchmark cohort
+with compact-output evidence; cross-platform CI evidence is pending.
 
 ## [0.3.0] - 2026-09-07
 

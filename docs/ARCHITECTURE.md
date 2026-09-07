@@ -107,6 +107,7 @@ Normalized kinds are deliberately small:
 - `class`
 - `interface`
 - `type`
+- `enum`
 - `module`
 - `query`
 - `block`
@@ -143,6 +144,16 @@ type Selector =
       clamp?: boolean;
     };
 ```
+
+Outline navigation is also bounded at Layer 4. Full outline preserves the
+complete normalized symbol record and its 10,000-entry default. `compact: true`
+produces a discovery-only representation and defaults to a 200-symbol page.
+`offset` is applied only after local/top-level/kind filters and deterministic
+source-order sorting. Every outline result returns explicit page metadata so an
+agent can stop when it has enough context instead of materializing the whole
+inventory. Pagination reduces delivered context; it does not claim to avoid the
+request-scoped parser/extraction work needed to establish the filtered symbol
+inventory.
 
 `occurrence` should not be used to hide ambiguity by default. It is an explicit disambiguator.
 Qualified `Owner.member` lookup remains normalized-IR selection: it filters a
@@ -195,8 +206,9 @@ Security requirements belong to the loader boundary, not the grammar.
 Core validates runtime requests before parsing. The default file budget is
 5,000,000 bytes and callers may lower it but may not raise it above the
 10,000,000-byte hard ceiling. Outline extraction has a bounded symbol budget;
-the default returned outline limit is 10,000 symbols and the extraction safety
-ceiling is 50,000 symbols. Core envelopes are checked against the default
+full outline defaults to 10,000 returned symbols, compact discovery defaults to
+a 200-symbol page, and the extraction safety ceiling remains 50,000 symbols.
+Core envelopes are checked against the default
 8 MiB serialized-output limit, which callers may lower to a minimum of 256
 bytes but may not raise. Slice callers may also set `maxLines` to fail closed
 when the resolved code unit is larger than the requested context budget; Core
