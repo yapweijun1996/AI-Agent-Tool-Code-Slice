@@ -53,7 +53,7 @@
     "cli": "node scripts/run-ts.mjs src/cli/index.ts",
     "release:version-check": "node scripts/check-release-version.mjs",
     "release:check": "npm run release:version-check && npm run typecheck && npm test && npm run test:golden && npm run test:e2e && npm run grammars:verify && npm pack --dry-run",
-    "prepare": "npm install --ignore-scripts --include=dev --no-package-lock --no-audit --no-fund && npm run build",
+    "prepare": "npm ci --ignore-scripts --include=dev --no-audit --no-fund && npm run build",
     "prepublishOnly": "npm run release:check",
     "prepack": "npm run build"
   },
