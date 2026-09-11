@@ -23,12 +23,6 @@ npm install --global agent-code-slice@latest
 code-slice capabilities --json
 ```
 
-For a GitHub revision that has not been published to npm yet, npm can build the repository through its `prepare` script:
-
-```bash
-npm install --global github:yapweijun1996/AI-Agent-Tool-Code-Slice
-code-slice capabilities --json
-```
 
 Codex can use the checked-in project skill from `.agents/skills/agent-code-slice/SKILL.md`. The global install provides the terminal CLI; it does not automatically register a host-specific skill.
 
