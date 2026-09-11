@@ -53,11 +53,16 @@
     "cli": "node scripts/run-ts.mjs src/cli/index.ts",
     "release:version-check": "node scripts/check-release-version.mjs",
     "release:check": "npm run release:version-check && npm run typecheck && npm test && npm run test:golden && npm run test:e2e && npm run grammars:verify && npm pack --dry-run",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run release:check",
     "prepack": "npm run build"
   },
   "dependencies": {
     "web-tree-sitter": "0.27.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -14,6 +14,24 @@ The current product is designed to work with any AI coding agent that can use on
 
 Target integrations include Codex CLI, Claude Code, Gemini CLI, OpenCode, AGRUN, VM-MCP, and other coding agents. A future serverless adapter is a separate planned integration; support must be verified by real end-to-end tests before being marked as supported.
 
+## Install globally for Codex CLI
+
+Install the published CLI from any directory; no repository checkout or `cd` is required:
+
+```bash
+npm install --global agent-code-slice@latest
+code-slice capabilities --json
+```
+
+For a GitHub revision that has not been published to npm yet, npm can build the repository through its `prepare` script:
+
+```bash
+npm install --global github:yapweijun1996/AI-Agent-Tool-Code-Slice
+code-slice capabilities --json
+```
+
+Codex can use the checked-in project skill from `.agents/skills/agent-code-slice/SKILL.md`. The global install provides the terminal CLI; it does not automatically register a host-specific skill.
+
 ## Why
 
 AI coding agents frequently read large source files when they only need one function, method, class, query, or logical block. This increases context usage and makes navigation less precise.

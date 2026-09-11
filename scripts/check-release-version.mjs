@@ -17,7 +17,7 @@ const registryUrl = `https://registry.npmjs.org/${encodeURIComponent(name)}/${en
 
 try {
   const response = await fetch(registryUrl, {
-    headers: { Accept: "application/vnd.npm.install-v1+json" },
+    headers: { Accept: "application/json" },
   });
 
   if (response.status === 404) {
