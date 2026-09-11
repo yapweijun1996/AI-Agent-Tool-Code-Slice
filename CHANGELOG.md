@@ -6,7 +6,20 @@ The project follows semantic versioning.
 
 ## [Unreleased]
 
-Package source version on PR #3 is `0.4.0`; release it only after the current upstream `0.3.0` candidate has been published.
+### Added
+
+- Added the project-scoped cross-agent Code Slice Skill contract plus Codex and
+  Claude Code wrapper files, with integration guidance for using the CLI/JS API
+  as the deterministic navigation layer. Vendor-version live E2E remains
+  unverified and is not claimed by this documentation-only integration work.
+
+## [0.4.0] - 2026-09-07
+
+Published to npm as `agent-code-slice@0.4.0` with `latest` pointing to this
+version. The published artifact records
+`gitHead=512479fa702f6bb694c44815534302459f449745`. Version 0.3.0 was a source
+milestone and was not published to npm; 0.4.0 is the first registry release
+after 0.2.1 and includes the 0.3.0 source-milestone changes documented below.
 
 ### Added
 
@@ -36,11 +49,20 @@ Package source version on PR #3 is `0.4.0`; release it only after the current up
   callable properties inside a function-local object do not leak back into
   compact/full discovery; `--include-locals` still restores them explicitly.
 
-Local verification for these Unreleased changes passes 80 unit tests, 23 Golden
-Eval cases, 6 agent-facing E2E cases, and the full 20-fixture benchmark cohort
-with compact-output evidence; cross-platform CI evidence is pending.
+### Verification
+
+- PR-head CI run 34096967717 passed all nine Windows/macOS/Ubuntu × Node
+  18.18.0/20/22 test jobs and all three Node 20 benchmark jobs.
+- Exact merge-commit CI run 34099721362 passed the same nine test jobs and three
+  benchmark jobs at `512479fa702f6bb694c44815534302459f449745`.
+- Post-publication registry smoke run 34109729432, pinned to that exact npm
+  `gitHead`, installed `agent-code-slice@0.4.0` from the public registry on
+  Windows, macOS, and Ubuntu with Node 20 and passed public API/CLI plus CFML
+  embedded-JavaScript verification on all three platforms.
 
 ## [0.3.0] - 2026-09-07
+
+_Source milestone only; not published to npm. These changes are included in the 0.4.0 registry release._
 
 ### Added
 
@@ -102,10 +124,7 @@ three Node 20 benchmark jobs. The registry-install job was skipped because
 this commit was not published; public-registry installation remains covered
 by the separate `0.2.0` release evidence above.
 
-The 0.3.0 release candidate has passed local verification with typecheck,
-build, 73 unit tests, 19 Golden Eval cases, 4 agent-facing E2E cases, all 8
-grammar integrity checks, and `npm pack --dry-run`. Cross-platform CI evidence
-for these newest navigation changes is pending.
+The 0.3.0 source milestone was not published to npm. Its agent-navigation changes were carried forward into the verified 0.4.0 registry release described above.
 
 ## [0.2.0] - 2026-09-05
 

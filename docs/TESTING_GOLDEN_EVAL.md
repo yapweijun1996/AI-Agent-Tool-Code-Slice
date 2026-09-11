@@ -137,14 +137,20 @@ CI run
 [33888822744](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33888822744)
 passed the then-current 12 cases on Windows, macOS, and Ubuntu with Node 20 and
 Node 22. The run also passed the then-current 39-test unit suite, grammar
-integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in set now has **23 cases**. The latest completed 0.3.0 release
-pipeline PR (#2), CI run
-[34090088966](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/34090088966),
-passed the previous 19 Golden cases, 73 unit tests, 4 agent-facing E2E cases,
-all nine Windows/macOS/Ubuntu × Node 18.18.0/20/22 test jobs, and all three
-Node 20 benchmark jobs. The current Unreleased compact-outline/TypeScript
-coverage changes have 80 local unit tests, 23 Golden cases, and 6 agent-facing
-E2E cases; their own cross-platform CI evidence is pending.
+integrity check, CLI smoke test, and `npm pack --dry-run` step. The checked-in set now has **23 cases**. The 0.4.0 release path has three
+separate evidence layers: PR-head CI run
+[34096967717](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/34096967717)
+passed 80 unit tests, 23 Golden cases, 6 agent-facing E2E cases, all nine
+Windows/macOS/Ubuntu × Node 18.18.0/20/22 test jobs, and all three Node 20
+benchmark jobs; exact merge-commit CI run
+[34099721362](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/34099721362)
+passed the same matrix at the published npm gitHead
+`512479fa702f6bb694c44815534302459f449745`; and post-publication workflow
+run 34109729432, dispatched on the automation fork but pinned to that exact
+release commit and using the same checked-in CI workflow, installed
+`agent-code-slice@0.4.0` from npm on Windows, macOS, and Ubuntu with Node 20
+and passed the public API/CLI plus CFML embedding smoke on all three platforms.
+
 The V0.2 release CI run
 [33936169516](https://github.com/yapweijun1996/AI-Agent-Tool-Code-Slice/actions/runs/33936169516)
 passed the previous 16 cases, 47-test suite, grammar integrity check, CLI smoke
